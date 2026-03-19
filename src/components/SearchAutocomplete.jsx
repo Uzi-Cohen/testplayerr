@@ -81,14 +81,17 @@ export default function SearchAutocomplete() {
   return (
     <div className="relative">
       {/* Input */}
-      <div className="flex items-center gap-2 rounded px-3 py-1.5 transition-all"
+      <div
+        className="flex items-center gap-2 rounded px-3 py-1.5 cursor-text"
         style={{
           background: 'rgba(8,15,28,0.95)',
           border: open ? '1px solid rgba(26,159,255,0.5)' : '1px solid rgba(26,127,212,0.2)',
           boxShadow: open ? '0 0 14px rgba(26,127,212,0.25)' : 'none',
-          minWidth: open ? '220px' : '36px',
-          transition: 'all 0.2s ease',
-        }}>
+          width: '220px',
+          transition: 'border-color 0.2s, box-shadow 0.2s',
+        }}
+        onClick={() => inputRef.current?.focus()}
+      >
         <svg className="w-4 h-4 shrink-0" style={{ color: open ? '#7ecfff' : '#2a4a6a' }}
           fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -102,7 +105,7 @@ export default function SearchAutocomplete() {
           onFocus={() => { if (results.length) setOpen(true) }}
           onKeyDown={handleKeyDown}
           placeholder="Search titles, actors..."
-          className="bg-transparent text-sm outline-none w-0 focus:w-40 sm:focus:w-52 transition-all duration-200"
+          className="bg-transparent text-sm outline-none flex-1 min-w-0"
           style={{ color: '#c8e8ff', caretColor: '#1a9fff' }}
         />
         {loading && (
