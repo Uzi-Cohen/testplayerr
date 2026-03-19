@@ -28,6 +28,7 @@ export default function Watch() {
   const [embedUrl, setEmbedUrl] = useState('')
   // Stable iframe key — only changes when the content actually changes
   const iframeKey = `${pathMediaType}-${id}-${season}-${episode}`
+  const iframeRef = useRef(null)
 
   useEffect(() => {
     setLoading(true)
@@ -132,18 +133,25 @@ export default function Watch() {
   return (
     <div className="pt-14 min-h-screen">
       {/* Player — full width, sticky on mobile */}
-      <div className="w-full bg-black" style={{ aspectRatio: '16/9' }}>
+      <div
+        className="w-full bg-black"
+        style={{ aspectRatio: '16/9' }}
+        onClick={() => iframeRef.current?.focus()}
+      >
         {embedUrl && (
           <iframe
+            ref={iframeRef}
             key={iframeKey}
             src={embedUrl}
             width="100%"
             height="100%"
             frameBorder="0"
             allowFullScreen
-            allow="autoplay; fullscreen"
+            allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
             title={`Watch ${title}`}
             style={{ display: 'block' }}
+            sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-pointer-lock"
+            onLoad={() => iframeRef.current?.focus()}
           />
         )}
       </div>
