@@ -6,10 +6,10 @@
   body {
     @apply min-h-screen text-white;
     font-family: 'Open Sans', sans-serif;
-    background: #050a14;
+    background: #080a0f;
     background-image:
-      radial-gradient(ellipse at top, #0d1a2e 0%, transparent 60%),
-      radial-gradient(ellipse at bottom, #080c18 0%, transparent 60%);
+      radial-gradient(ellipse at 50% 0%, #0d1520 0%, transparent 65%),
+      radial-gradient(ellipse at 50% 100%, #06080f 0%, transparent 65%);
   }
 
   h1, h2, h3, h4 {
@@ -20,66 +20,146 @@
   * { box-sizing: border-box; }
 
   ::-webkit-scrollbar { width: 5px; }
-  ::-webkit-scrollbar-track { background: #0a0f1a; }
-  ::-webkit-scrollbar-thumb { background: #1a4a7a; border-radius: 3px; }
+  ::-webkit-scrollbar-track { background: #060810; }
+  ::-webkit-scrollbar-thumb { background: #1a3a5a; border-radius: 3px; }
+
+  /* ── Global scanlines ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(0, 0, 0, 0.055) 3px,
+      rgba(0, 0, 0, 0.055) 4px
+    );
+  }
+
+  /* ── Film grain (animated noise) ── */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: -50%;
+    width: 200%;
+    height: 200%;
+    z-index: 9997;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+    animation: grain 0.4s steps(1) infinite;
+  }
+
+  @keyframes grain {
+    0%   { transform: translate(0, 0) }
+    10%  { transform: translate(-2%, -3%) }
+    20%  { transform: translate(3%, 1%) }
+    30%  { transform: translate(-1%, 4%) }
+    40%  { transform: translate(4%, -2%) }
+    50%  { transform: translate(-3%, 3%) }
+    60%  { transform: translate(2%, -4%) }
+    70%  { transform: translate(-4%, 1%) }
+    80%  { transform: translate(1%, 3%) }
+    90%  { transform: translate(3%, -1%) }
+    100% { transform: translate(0, 0) }
+  }
 }
 
 @layer components {
-  /* Glow button */
+
+  /* ── Retro glow button (blue) ── */
   .btn-glow {
-    @apply inline-flex items-center gap-2 px-5 py-2.5 rounded font-bold uppercase tracking-wider text-sm transition-all duration-200 active:scale-95;
-    background: linear-gradient(180deg, #1a7fd4 0%, #0d5fa8 100%);
-    box-shadow: 0 0 18px rgba(26, 127, 212, 0.55), 0 2px 6px rgba(0,0,0,0.6);
-    border: 1px solid rgba(100, 180, 255, 0.3);
-    text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+    @apply inline-flex items-center gap-2 px-5 py-2.5 font-bold uppercase tracking-wider text-sm transition-all duration-200 active:scale-95;
+    background: linear-gradient(180deg, #2a90e8 0%, #0d5fa8 100%);
+    box-shadow: 0 0 18px rgba(26,127,212,0.5), 0 2px 6px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.12);
+    border: 1px solid rgba(100,180,255,0.3);
+    border-radius: 3px;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.7);
   }
   .btn-glow:hover {
-    background: linear-gradient(180deg, #2a9ff4 0%, #1a7fd4 100%);
-    box-shadow: 0 0 28px rgba(26, 127, 212, 0.8), 0 2px 8px rgba(0,0,0,0.6);
+    background: linear-gradient(180deg, #3aa8ff 0%, #1a7fd4 100%);
+    box-shadow: 0 0 30px rgba(26,127,212,0.8), 0 2px 10px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.18);
   }
 
-  /* Section title bar */
+  /* ── Red "watch" button (retro Netflix) ── */
+  .btn-red {
+    @apply inline-flex items-center gap-2 px-5 py-2.5 font-bold uppercase tracking-wider text-sm transition-all duration-200 active:scale-95;
+    background: linear-gradient(180deg, #e03030 0%, #9a1515 100%);
+    box-shadow: 0 0 20px rgba(200,30,30,0.55), 0 2px 6px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,90,90,0.3);
+    border-radius: 3px;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+    color: #fff;
+  }
+  .btn-red:hover {
+    background: linear-gradient(180deg, #f04040 0%, #c02020 100%);
+    box-shadow: 0 0 34px rgba(200,30,30,0.8), 0 2px 10px rgba(0,0,0,0.8);
+  }
+
+  /* ── Section title ── */
   .section-title {
-    @apply uppercase font-bold tracking-widest text-sm;
+    @apply uppercase font-bold;
     font-family: 'Oswald', sans-serif;
-    color: #7ecfff;
-    text-shadow: 0 0 12px rgba(126, 207, 255, 0.6);
+    color: #b0c8e0;
+    letter-spacing: 0.12em;
     display: flex;
     align-items: center;
     gap: 10px;
+    font-size: 0.82rem;
   }
   .section-title::before {
     content: '';
     display: inline-block;
-    width: 4px;
-    height: 18px;
-    background: linear-gradient(180deg, #1a9fff, #0d5fa8);
-    border-radius: 2px;
-    box-shadow: 0 0 8px rgba(26, 159, 255, 0.8);
+    width: 3px;
+    height: 16px;
+    background: linear-gradient(180deg, #cc2200, #880e00);
+    border-radius: 1px;
+    box-shadow: 0 0 8px rgba(200,60,0,0.8);
   }
 
-  /* Card glow on hover */
+  /* ── Movie card ── */
   .card-2010 {
-    @apply relative rounded overflow-hidden transition-all duration-300 cursor-pointer;
-    background: #0d1626;
-    border: 1px solid rgba(26, 127, 212, 0.15);
+    @apply relative rounded-sm overflow-hidden cursor-pointer;
+    background: #0d1220;
+    border: 1px solid rgba(30, 50, 80, 0.5);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   }
   .card-2010:hover {
-    border-color: rgba(26, 159, 255, 0.5);
-    box-shadow: 0 0 20px rgba(26, 127, 212, 0.35), 0 8px 24px rgba(0,0,0,0.7);
-    transform: translateY(-3px) scale(1.02);
+    border-color: rgba(180,30,30,0.5);
+    box-shadow: 0 0 22px rgba(180,30,30,0.22), 0 14px 36px rgba(0,0,0,0.9);
+    transform: translateY(-5px) scale(1.03);
+    z-index: 10;
+    position: relative;
   }
 
-  /* Glowing divider */
+  /* ── Glowing divider ── */
   .glow-divider {
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(26, 127, 212, 0.6), transparent);
+    background: linear-gradient(90deg, transparent, rgba(160,30,30,0.5) 30%, rgba(26,90,160,0.3) 70%, transparent);
   }
 
-  /* Metallic panel */
+  /* ── Film strip decoration ── */
+  .film-strip-dots {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .film-strip-dots::before,
+  .film-strip-dots::after {
+    content: '▪ ▪ ▪';
+    font-size: 6px;
+    letter-spacing: 2px;
+    color: rgba(255,255,255,0.12);
+  }
+
+  /* ── Panel ── */
   .panel-dark {
-    background: linear-gradient(180deg, #0e1827 0%, #080f1c 100%);
-    border: 1px solid rgba(26, 127, 212, 0.2);
-    border-radius: 6px;
+    background: linear-gradient(180deg, #0e1520 0%, #080c14 100%);
+    border: 1px solid rgba(26, 70, 120, 0.25);
+    border-radius: 4px;
   }
 }
