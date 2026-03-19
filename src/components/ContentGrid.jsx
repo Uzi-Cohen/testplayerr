@@ -5,11 +5,11 @@ export default function ContentGrid({ items, loading, error, loadMore, hasMore, 
   if (error) {
     return (
       <div className="text-center py-20">
-        <p className="text-red-400 text-lg">{error}</p>
+        <p className="font-display text-lg uppercase tracking-wider" style={{ color: '#e05050' }}>{error}</p>
         {error.includes('API key') && (
-          <p className="text-gray-500 mt-2 text-sm">
-            Add your TMDB API key to a <code className="bg-white/10 px-1 rounded">.env</code> file as{' '}
-            <code className="bg-white/10 px-1 rounded">VITE_TMDB_API_KEY</code>
+          <p className="text-sm mt-3" style={{ color: '#3a5a7a' }}>
+            Add your TMDB API key to a <code className="px-1 rounded" style={{ background: '#0d1626', color: '#7ecfff' }}>.env</code> file as{' '}
+            <code className="px-1 rounded" style={{ background: '#0d1626', color: '#7ecfff' }}>VITE_TMDB_API_KEY</code>
           </p>
         )}
       </div>
@@ -17,16 +17,12 @@ export default function ContentGrid({ items, loading, error, loadMore, hasMore, 
   }
 
   if (loading && (!items || items.length === 0)) {
-    return (
-      <div className="flex justify-center py-20">
-        <Spinner />
-      </div>
-    )
+    return <div className="flex justify-center py-20"><Spinner /></div>
   }
 
   if (!items || items.length === 0) {
     return (
-      <div className="text-center py-20 text-gray-500">
+      <div className="text-center py-20 font-display uppercase tracking-widest text-sm" style={{ color: '#2a4a6a' }}>
         {emptyMessage || 'No content found.'}
       </div>
     )
@@ -34,7 +30,7 @@ export default function ContentGrid({ items, loading, error, loadMore, hasMore, 
 
   return (
     <div className="space-y-8">
-      <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-4">
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-3">
         {items.map(item => (
           <MovieCard key={`${item.id}-${item.media_type}`} item={item} />
         ))}
@@ -45,9 +41,9 @@ export default function ContentGrid({ items, loading, error, loadMore, hasMore, 
           <button
             onClick={loadMore}
             disabled={loading}
-            className="btn-primary bg-white/10 hover:bg-white/20 text-white disabled:opacity-50"
+            className="btn-glow disabled:opacity-50"
           >
-            {loading ? 'Loading...' : 'Load more'}
+            {loading ? 'Loading...' : 'Load More'}
           </button>
         </div>
       )}

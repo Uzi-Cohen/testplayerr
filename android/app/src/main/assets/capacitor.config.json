@@ -1,0 +1,9 @@
+{
+	"appId": "com.streamking.app",
+	"appName": "StreamKing",
+	"webDir": "dist",
+	"android": {
+		"allowMixedContent": true
+	},
+	"server": {}
+}

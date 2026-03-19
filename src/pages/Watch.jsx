@@ -15,18 +15,13 @@ export default function Watch() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  // TV state
   const [season, setSeason] = useState(1)
   const [episode, setEpisode] = useState(1)
   const [seasonData, setSeasonData] = useState(null)
   const [totalSeasons, setTotalSeasons] = useState(1)
 
-  // Similar content
   const [similar, setSimilar] = useState([])
-
-  // The embed URL — only recomputed when id/season/episode change, not on every render
   const [embedUrl, setEmbedUrl] = useState('')
-  // Stable iframe key — only changes when the content actually changes
   const iframeKey = `${pathMediaType}-${id}-${season}-${episode}`
   const iframeRef = useRef(null)
 
@@ -49,7 +44,6 @@ export default function Watch() {
       .catch(err => { setError(err.message); setLoading(false) })
   }, [id, pathMediaType, isTv])
 
-  // Load season episodes
   useEffect(() => {
     if (!isTv) return
     tmdb.tvSeason(id, season)
@@ -57,20 +51,17 @@ export default function Watch() {
       .catch(() => setSeasonData(null))
   }, [id, season, isTv])
 
-  // Build embed URL only when id/season/episode change
   useEffect(() => {
     const saved = isTv
       ? getProgress('tv', id, season, episode)
       : getProgress('movie', id)
     const ts = saved?.timestamp || 0
-
     const url = isTv
       ? tvUrl(id, season, episode, { autoPlay: true, nextEpisode: true, episodeSelector: true, progress: ts })
       : movieUrl(id, { autoPlay: true, progress: ts })
     setEmbedUrl(url)
   }, [id, isTv, season, episode])
 
-  // Save progress from player postMessage events
   const detailsRef = useRef(null)
   useEffect(() => { detailsRef.current = details }, [details])
 
@@ -83,19 +74,12 @@ export default function Watch() {
       if (data.event === 'timeupdate' && data.progress > 0.01) {
         const d = detailsRef.current
         saveProgress(pathMediaType, id, {
-          id,
-          mediaType: pathMediaType,
-          progress: data.progress,
-          timestamp: data.currentTime,
-          duration: data.duration,
-          season: data.season,
-          episode: data.episode,
-          title: d?.title || d?.name,
-          name: d?.name || d?.title,
-          poster_path: d?.poster_path,
-          vote_average: d?.vote_average,
-          release_date: d?.release_date,
-          first_air_date: d?.first_air_date,
+          id, mediaType: pathMediaType,
+          progress: data.progress, timestamp: data.currentTime,
+          duration: data.duration, season: data.season, episode: data.episode,
+          title: d?.title || d?.name, name: d?.name || d?.title,
+          poster_path: d?.poster_path, vote_average: d?.vote_average,
+          release_date: d?.release_date, first_air_date: d?.first_air_date,
         })
       }
     } catch { /* not JSON */ }
@@ -107,18 +91,14 @@ export default function Watch() {
   }, [handleMessage])
 
   if (loading) {
-    return (
-      <div className="pt-16 flex justify-center items-center min-h-screen">
-        <Spinner size={12} />
-      </div>
-    )
+    return <div className="pt-14 flex justify-center items-center min-h-screen"><Spinner /></div>
   }
 
   if (error) {
     return (
-      <div className="pt-16 flex flex-col items-center justify-center min-h-screen gap-4">
-        <p className="text-red-400">{error}</p>
-        <Link to="/" className="text-blue-400 hover:underline">← Back to Home</Link>
+      <div className="pt-14 flex flex-col items-center justify-center min-h-screen gap-4">
+        <p className="font-display uppercase tracking-wider" style={{ color: '#e05050' }}>{error}</p>
+        <Link to="/" style={{ color: '#1a9fff' }} className="text-sm hover:underline">← Back to Home</Link>
       </div>
     )
   }
@@ -127,26 +107,21 @@ export default function Watch() {
   const genres = details?.genres || []
   const runtime = details?.runtime
   const date = details?.release_date || details?.first_air_date
-  const cast = details?.credits?.cast?.slice(0, 6) || []
+  const cast = details?.credits?.cast?.slice(0, 8) || []
   const episodes = seasonData?.episodes || []
 
   return (
     <div className="pt-14 min-h-screen">
-      {/* Player — full width, sticky on mobile */}
-      <div
-        className="w-full bg-black"
-        style={{ aspectRatio: '16/9' }}
-        onClick={() => iframeRef.current?.focus()}
-      >
+      {/* Player */}
+      <div className="w-full bg-black" style={{ aspectRatio: '16/9' }}
+        onClick={() => iframeRef.current?.focus()}>
         {embedUrl && (
           <iframe
             ref={iframeRef}
             key={iframeKey}
             src={embedUrl}
-            width="100%"
-            height="100%"
-            frameBorder="0"
-            allowFullScreen
+            width="100%" height="100%"
+            frameBorder="0" allowFullScreen
             allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
             title={`Watch ${title}`}
             style={{ display: 'block' }}
@@ -156,44 +131,71 @@ export default function Watch() {
         )}
       </div>
 
-      <div className="max-w-5xl mx-auto px-3 sm:px-6 py-5 space-y-6">
-        {/* Title & meta */}
+      {/* Bottom glow under player */}
+      <div style={{ height: '2px', background: 'linear-gradient(90deg, transparent, rgba(26,127,212,0.5), transparent)' }} />
+
+      <div className="max-w-5xl mx-auto px-3 sm:px-6 py-6 space-y-8">
+        {/* Title block */}
         <div className="space-y-2">
-          <h1 className="text-xl sm:text-2xl font-bold leading-tight">{title}</h1>
-          <div className="flex flex-wrap items-center gap-2 text-sm text-gray-400">
-            {date && <span>{formatDate(date)}</span>}
-            {runtime && <span>{formatRuntime(runtime)}</span>}
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <h1 className="font-display font-bold text-xl sm:text-3xl uppercase tracking-wide"
+              style={{ color: '#e8f4ff', textShadow: '0 0 20px rgba(26,127,212,0.3)' }}>
+              {title}
+            </h1>
             {details?.vote_average > 0 && (
-              <span className="flex items-center gap-1 text-yellow-400">
-                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-                {details.vote_average.toFixed(1)}
-              </span>
+              <div className="shrink-0 text-right">
+                <div className="font-display text-lg font-bold" style={{ color: '#ffc107' }}>
+                  ★ {details.vote_average.toFixed(1)}
+                </div>
+                <div className="text-xs" style={{ color: '#3a5a7a' }}>/ 10</div>
+              </div>
             )}
-            {genres.slice(0, 3).map(g => (
-              <span key={g.id} className="bg-white/10 px-2 py-0.5 rounded-full text-xs">{g.name}</span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 text-xs" style={{ color: '#3a5a7a' }}>
+            {date && <span style={{ color: '#6a8fad' }}>{formatDate(date)}</span>}
+            {runtime && <span>· {formatRuntime(runtime)}</span>}
+            {genres.slice(0, 4).map(g => (
+              <span key={g.id} className="px-2 py-0.5 rounded-sm font-display uppercase tracking-wider text-xs"
+                style={{ background: 'rgba(26,127,212,0.1)', border: '1px solid rgba(26,127,212,0.2)', color: '#4a7aaa' }}>
+                {g.name}
+              </span>
             ))}
           </div>
+
           {details?.overview && (
-            <p className="text-gray-400 text-sm leading-relaxed line-clamp-3">{details.overview}</p>
+            <p className="text-sm leading-relaxed line-clamp-3" style={{ color: '#5a7a94' }}>
+              {details.overview}
+            </p>
           )}
         </div>
 
-        {/* TV: Season/Episode selector */}
+        <div className="glow-divider" />
+
+        {/* TV Episode Selector */}
         {isTv && (
-          <div className="space-y-3">
-            {/* Season tabs — horizontal scroll */}
+          <div className="space-y-4">
+            <h2 className="section-title">Episodes</h2>
+
+            {/* Season tabs */}
             <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
               {Array.from({ length: totalSeasons }, (_, i) => i + 1).map(s => (
                 <button
                   key={s}
                   onClick={() => { setSeason(s); setEpisode(1) }}
-                  className={`shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                    s === season ? 'bg-blue-600 text-white' : 'bg-white/10 text-gray-300 hover:bg-white/20'
-                  }`}
+                  className="shrink-0 px-3 py-1.5 rounded text-xs font-display uppercase tracking-wider transition-all"
+                  style={s === season ? {
+                    background: 'linear-gradient(180deg, #1a7fd4, #0d4a8a)',
+                    color: '#fff',
+                    boxShadow: '0 0 10px rgba(26,127,212,0.5)',
+                    border: '1px solid rgba(100,180,255,0.3)',
+                  } : {
+                    background: 'rgba(13,22,38,0.8)',
+                    border: '1px solid rgba(26,127,212,0.15)',
+                    color: '#3a5a7a',
+                  }}
                 >
-                  S{s}
+                  Season {s}
                 </button>
               ))}
             </div>
@@ -207,36 +209,40 @@ export default function Watch() {
                 <button
                   key={ep.episode_number}
                   onClick={() => setEpisode(ep.episode_number)}
-                  className={`flex items-center gap-3 w-full p-2.5 rounded-xl text-left transition-colors ${
-                    episode === ep.episode_number
-                      ? 'bg-blue-600/25 border border-blue-500/40'
-                      : 'bg-white/5 hover:bg-white/10'
-                  }`}
+                  className="flex items-center gap-3 w-full p-2.5 rounded text-left transition-all"
+                  style={episode === ep.episode_number ? {
+                    background: 'linear-gradient(90deg, rgba(26,127,212,0.2), rgba(26,127,212,0.05))',
+                    border: '1px solid rgba(26,127,212,0.35)',
+                    boxShadow: '0 0 8px rgba(26,127,212,0.1)',
+                  } : {
+                    background: 'rgba(13,22,38,0.5)',
+                    border: '1px solid rgba(26,127,212,0.08)',
+                  }}
                 >
                   {ep.still_path ? (
-                    <img
-                      src={`https://image.tmdb.org/t/p/w185${ep.still_path}`}
-                      alt=""
-                      className="w-24 h-14 object-cover rounded-lg shrink-0"
-                    />
+                    <img src={`https://image.tmdb.org/t/p/w185${ep.still_path}`} alt=""
+                      className="w-24 h-14 object-cover rounded shrink-0"
+                      style={{ border: '1px solid rgba(26,127,212,0.2)' }} />
                   ) : (
-                    <div className="w-24 h-14 bg-[#242424] rounded-lg shrink-0 flex items-center justify-center text-gray-500 text-sm font-bold">
+                    <div className="w-24 h-14 rounded shrink-0 flex items-center justify-center font-display font-bold text-sm"
+                      style={{ background: '#0a1220', border: '1px solid rgba(26,127,212,0.15)', color: '#1a4a7a' }}>
                       {ep.episode_number}
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium truncate">
+                    <p className="text-sm font-display uppercase tracking-wide truncate"
+                      style={{ color: episode === ep.episode_number ? '#c8e8ff' : '#5a7a94' }}>
                       {ep.episode_number}. {ep.name}
                     </p>
                     {ep.overview && (
-                      <p className="text-xs text-gray-500 line-clamp-2 mt-0.5 hidden sm:block">{ep.overview}</p>
-                    )}
-                    {ep.runtime && (
-                      <p className="text-xs text-gray-600 mt-0.5">{ep.runtime}m</p>
+                      <p className="text-xs line-clamp-1 mt-0.5 hidden sm:block" style={{ color: '#2a4a6a' }}>
+                        {ep.overview}
+                      </p>
                     )}
                   </div>
                   {episode === ep.episode_number && (
-                    <div className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+                    <div className="w-1.5 h-1.5 rounded-full shrink-0"
+                      style={{ background: '#1a9fff', boxShadow: '0 0 6px rgba(26,159,255,0.8)' }} />
                   )}
                 </button>
               ))}
@@ -247,32 +253,34 @@ export default function Watch() {
         {/* Cast */}
         {cast.length > 0 && (
           <div className="space-y-3">
-            <h2 className="font-semibold text-sm text-gray-400 uppercase tracking-wider">Cast</h2>
+            <h2 className="section-title">Cast</h2>
             <div className="flex gap-3 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
               {cast.map(person => (
-                <div key={person.id} className="shrink-0 w-16 text-center space-y-1">
-                  <div className="w-16 h-16 rounded-full overflow-hidden bg-[#242424] mx-auto">
+                <div key={person.id} className="shrink-0 w-16 text-center space-y-1.5">
+                  <div className="w-16 h-16 rounded-full overflow-hidden mx-auto"
+                    style={{ border: '2px solid rgba(26,127,212,0.3)', boxShadow: '0 0 8px rgba(26,127,212,0.2)' }}>
                     {person.profile_path ? (
-                      <img
-                        src={`https://image.tmdb.org/t/p/w185${person.profile_path}`}
-                        alt={person.name}
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={`https://image.tmdb.org/t/p/w185${person.profile_path}`}
+                        alt={person.name} className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-600 text-xl">👤</div>
+                      <div className="w-full h-full flex items-center justify-center text-xl"
+                        style={{ background: '#0d1626', color: '#1a3a5a' }}>👤</div>
                     )}
                   </div>
-                  <p className="text-xs font-medium truncate">{person.name}</p>
-                  <p className="text-xs text-gray-500 truncate">{person.character}</p>
+                  <p className="text-xs font-display uppercase truncate" style={{ color: '#7a9db8', fontSize: '9px', letterSpacing: '0.05em' }}>
+                    {person.name}
+                  </p>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* Similar content */}
         {similar.length > 0 && (
-          <Section title={`More like ${title}`} items={similar} />
+          <>
+            <div className="glow-divider" />
+            <Section title={`More Like ${title}`} items={similar} />
+          </>
         )}
       </div>
     </div>

@@ -30,9 +30,7 @@ export default function SearchPage() {
     }
   }
 
-  useEffect(() => {
-    if (initialQuery) doSearch(initialQuery, 1)
-  }, [initialQuery])
+  useEffect(() => { if (initialQuery) doSearch(initialQuery, 1) }, [initialQuery])
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -44,28 +42,33 @@ export default function SearchPage() {
   }
 
   return (
-    <div className="pt-20 max-w-7xl mx-auto px-3 sm:px-4 pb-12 space-y-5">
-      <form onSubmit={handleSubmit} className="flex gap-3">
+    <div className="pt-20 max-w-7xl mx-auto px-3 sm:px-4 pb-12 space-y-6">
+      <form onSubmit={handleSubmit} className="flex gap-2">
         <input
           type="text"
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="Search movies and TV shows..."
-          className="flex-1 bg-[#181818] border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-500 outline-none focus:border-blue-500 transition-colors"
+          className="flex-1 text-sm outline-none px-4 py-3 rounded"
+          style={{
+            background: '#0d1626',
+            border: '1px solid rgba(26,127,212,0.25)',
+            color: '#c8e8ff',
+            fontFamily: 'Open Sans, sans-serif',
+          }}
+          onFocus={e => e.target.style.borderColor = 'rgba(26,159,255,0.6)'}
+          onBlur={e => e.target.style.borderColor = 'rgba(26,127,212,0.25)'}
         />
-        <button
-          type="submit"
-          className="btn-primary bg-blue-600 hover:bg-blue-500 text-white px-6"
-        >
-          Search
-        </button>
+        <button type="submit" className="btn-glow">Search</button>
       </form>
 
       {initialQuery && (
-        <h1 className="text-xl font-semibold">
-          Results for <span className="text-blue-400">"{initialQuery}"</span>
+        <h1 className="font-display text-lg uppercase tracking-wider" style={{ color: '#3a5a7a' }}>
+          Results for <span style={{ color: '#7ecfff' }}>"{initialQuery}"</span>
         </h1>
       )}
+
+      <div className="glow-divider" />
 
       <ContentGrid
         items={results}
