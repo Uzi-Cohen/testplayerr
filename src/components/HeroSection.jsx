@@ -10,7 +10,7 @@ export default function HeroSection({ item }) {
   const backdrop = backdropUrl(item.backdrop_path)
 
   return (
-    <div className="relative w-full h-[70vh] min-h-[400px] overflow-hidden">
+    <div className="relative w-full h-[50vh] sm:h-[65vh] min-h-[280px] overflow-hidden">
       {/* Backdrop */}
       {backdrop && (
         <img
@@ -25,8 +25,8 @@ export default function HeroSection({ item }) {
       <div className="absolute inset-0 bg-gradient-to-t from-[#0f0f0f] via-transparent to-transparent" />
 
       {/* Content */}
-      <div className="relative h-full max-w-7xl mx-auto px-4 flex items-end pb-16">
-        <div className="max-w-lg space-y-4">
+      <div className="relative h-full max-w-7xl mx-auto px-3 sm:px-4 flex items-end pb-8 sm:pb-14">
+        <div className="max-w-lg space-y-2 sm:space-y-4">
           <div className="flex items-center gap-2">
             <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
               mediaType === 'tv' ? 'bg-purple-600' : 'bg-blue-600'
@@ -44,10 +44,10 @@ export default function HeroSection({ item }) {
             <span className="text-sm text-gray-400">{formatDate(date)}</span>
           </div>
 
-          <h1 className="text-4xl md:text-5xl font-bold leading-tight">{title}</h1>
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold leading-tight">{title}</h1>
 
           {item.overview && (
-            <p className="text-gray-300 text-sm leading-relaxed line-clamp-3">{item.overview}</p>
+            <p className="text-gray-300 text-xs sm:text-sm leading-relaxed line-clamp-2 sm:line-clamp-3">{item.overview}</p>
           )}
 
           <Link

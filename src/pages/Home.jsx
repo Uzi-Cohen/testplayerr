@@ -46,10 +46,10 @@ export default function Home() {
   }
 
   return (
-    <div className="pt-16">
+    <div className="pt-14">
       <HeroSection item={hero} />
 
-      <div className="max-w-7xl mx-auto px-4 py-8 space-y-10">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-6 space-y-8">
         {history.length > 0 && (
           <Section
             title="Continue Watching"

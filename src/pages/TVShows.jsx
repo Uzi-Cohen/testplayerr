@@ -16,7 +16,7 @@ export default function TVShows() {
   )
 
   return (
-    <div className="pt-24 max-w-7xl mx-auto px-4 pb-12 space-y-6">
+    <div className="pt-20 max-w-7xl mx-auto px-3 sm:px-4 pb-12 space-y-5">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">TV Shows</h1>
         <div className="flex gap-1 bg-white/5 rounded-lg p-1">

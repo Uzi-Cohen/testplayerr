@@ -44,7 +44,7 @@ export default function SearchPage() {
   }
 
   return (
-    <div className="pt-24 max-w-7xl mx-auto px-4 pb-12 space-y-6">
+    <div className="pt-20 max-w-7xl mx-auto px-3 sm:px-4 pb-12 space-y-5">
       <form onSubmit={handleSubmit} className="flex gap-3">
         <input
           type="text"
