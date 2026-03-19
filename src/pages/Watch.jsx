@@ -137,6 +137,15 @@ export default function Watch() {
         className="w-full bg-black"
         style={{ aspectRatio: '16/9' }}
         onClick={() => iframeRef.current?.focus()}
+        onDoubleClick={() => {
+          const el = iframeRef.current
+          if (!el) return
+          if (document.fullscreenElement) {
+            document.exitFullscreen()
+          } else {
+            el.requestFullscreen?.() ?? el.webkitRequestFullscreen?.()
+          }
+        }}
       >
         {embedUrl && (
           <iframe
@@ -150,7 +159,7 @@ export default function Watch() {
             allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
             title={`Watch ${title}`}
             style={{ display: 'block' }}
-            sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-pointer-lock"
+            sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-pointer-lock allow-fullscreen"
             onLoad={() => iframeRef.current?.focus()}
           />
         )}

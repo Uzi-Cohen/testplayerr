@@ -2,3 +2,11 @@ node_modules
 dist
 .env
 .env.local
+
+# Android build artifacts
+android/.gradle
+android/app/build
+android/build
+android/local.properties
+*.apk
+*.aab
