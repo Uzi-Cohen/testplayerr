@@ -27,10 +27,19 @@ export const tmdb = {
   tvDetails: (id) => fetchTMDB(`/tv/${id}`, { append_to_response: 'credits,videos' }),
   tvSeason: (id, season) => fetchTMDB(`/tv/${id}/season/${season}`),
   search: (query, page = 1) => fetchTMDB('/search/multi', { query, page }),
-  genres: {
-    movies: () => fetchTMDB('/genre/movie/list'),
-    tv: () => fetchTMDB('/genre/tv/list'),
-  },
+  searchQuick: (query) => fetchTMDB('/search/multi', { query, page: 1 }),
+  discoverMovies: (page = 1, genreId = null, sortBy = 'popularity.desc') =>
+    fetchTMDB('/discover/movie', {
+      page, sort_by: sortBy,
+      ...(genreId ? { with_genres: genreId } : {}),
+    }),
+  discoverTV: (page = 1, genreId = null, sortBy = 'popularity.desc') =>
+    fetchTMDB('/discover/tv', {
+      page, sort_by: sortBy,
+      ...(genreId ? { with_genres: genreId } : {}),
+    }),
+  genreMovies: () => fetchTMDB('/genre/movie/list'),
+  genreTV: () => fetchTMDB('/genre/tv/list'),
 }
 
 export function posterUrl(path, size = 'w500') {
