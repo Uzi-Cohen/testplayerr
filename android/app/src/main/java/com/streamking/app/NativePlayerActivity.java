@@ -65,19 +65,9 @@ public class NativePlayerActivity extends AppCompatActivity {
         }
     };
 
-    // ── JS: hides embed controls + reports video state ─────────────────────
+    // ── JS: reports video state to native bridge ───────────────────────────
     private static final String INJECT_JS =
         "(function(){" +
-        // Hide embed's own UI (server selector, its control bar)
-        "  var st=document.createElement('style');" +
-        "  st.textContent='" +
-        "    .plyr__controls,.vjs-control-bar,.jw-controlbar," +
-        "    [class*=\"control-bar\"],[class*=\"ControlBar\"]," +
-        "    .server-list,.servers,.server-tab,.ep-server," +
-        "    [class*=\"server\"],[class*=\"source-select\"]" +
-        "    {display:none!important}'" +
-        "  ;(document.head||document.documentElement).appendChild(st);" +
-        // Bridge video events
         "  var b=window.VB; if(!b) return;" +
         "  var v=null;" +
         "  function find(){" +
