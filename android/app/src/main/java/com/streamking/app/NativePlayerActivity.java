@@ -84,6 +84,7 @@ public class NativePlayerActivity extends AppCompatActivity {
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT
                 ));
+                overlay.bringToFront(); // keep overlay above the video surface
             }
             @Override
             public void onHideCustomView() {
