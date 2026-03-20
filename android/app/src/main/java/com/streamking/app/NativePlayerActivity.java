@@ -1,18 +1,10 @@
 package com.streamking.app;
 
 import android.graphics.Color;
-import android.graphics.Typeface;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.FrameLayout;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import androidx.annotation.OptIn;
 import androidx.appcompat.app.AppCompatActivity;
@@ -26,11 +18,6 @@ public class NativePlayerActivity extends AppCompatActivity {
 
     private ExoPlayer  player;
     private PlayerView playerView;
-    private View       overlay;
-
-    private final Handler  hideHandler = new Handler(Looper.getMainLooper());
-    private final Runnable hideOverlay = () -> overlay.setVisibility(View.GONE);
-    private static final int HIDE_DELAY = 3000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,31 +29,13 @@ public class NativePlayerActivity extends AppCompatActivity {
         String url   = getIntent().getStringExtra("url");
         String title = getIntent().getStringExtra("title");
 
-        // ── Root ──────────────────────────────────────────────────────────
-        FrameLayout root = new FrameLayout(this);
-        root.setBackgroundColor(Color.BLACK);
-        setContentView(root);
-
-        // ── PlayerView ────────────────────────────────────────────────────
         playerView = new PlayerView(this);
-        playerView.setUseController(false); // custom overlay instead
         playerView.setBackgroundColor(Color.BLACK);
-        root.addView(playerView, new FrameLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.MATCH_PARENT
-        ));
+        playerView.setUseController(true);
+        playerView.setControllerAutoShow(true);
+        playerView.setControllerHideOnTouch(true);
+        setContentView(playerView);
 
-        // ── Overlay ───────────────────────────────────────────────────────
-        overlay = buildOverlay(title);
-        FrameLayout.LayoutParams olp = new FrameLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        );
-        olp.gravity = Gravity.TOP;
-        root.addView(overlay, olp);
-        scheduleHide();
-
-        // ── Player ────────────────────────────────────────────────────────
         if (url != null) initPlayer(url);
     }
 
@@ -81,83 +50,18 @@ public class NativePlayerActivity extends AppCompatActivity {
         player.setPlayWhenReady(true);
     }
 
-    // ── Overlay builder ───────────────────────────────────────────────────
-
-    private View buildOverlay(String title) {
-        LinearLayout bar = new LinearLayout(this);
-        bar.setOrientation(LinearLayout.HORIZONTAL);
-        bar.setBackgroundColor(Color.argb(210, 0, 0, 0));
-        bar.setGravity(Gravity.CENTER_VERTICAL);
-        bar.setPadding(dp(20), dp(14), dp(20), dp(14));
-
-        TextView back = new TextView(this);
-        back.setText("← Back");
-        back.setTextColor(Color.parseColor("#00c896"));
-        back.setTextSize(15);
-        back.setTypeface(Typeface.DEFAULT_BOLD);
-        back.setLetterSpacing(0.08f);
-        back.setAllCaps(true);
-        back.setPadding(dp(14), dp(8), dp(14), dp(8));
-        back.setBackground(makeRoundedBg(Color.argb(80, 0, 200, 150), dp(4)));
-        back.setOnClickListener(v -> finish());
-        bar.addView(back);
-
-        View spacer = new View(this);
-        bar.addView(spacer, new LinearLayout.LayoutParams(0, 1, 1f));
-
-        if (title != null && !title.isEmpty()) {
-            TextView tv = new TextView(this);
-            tv.setText(title.toUpperCase());
-            tv.setTextColor(Color.WHITE);
-            tv.setTextSize(16);
-            tv.setTypeface(Typeface.DEFAULT_BOLD);
-            tv.setLetterSpacing(0.05f);
-            tv.setMaxLines(1);
-            tv.setEllipsize(android.text.TextUtils.TruncateAt.END);
-            bar.addView(tv);
-        }
-
-        return bar;
-    }
-
-    private android.graphics.drawable.GradientDrawable makeRoundedBg(int color, int radius) {
-        android.graphics.drawable.GradientDrawable d = new android.graphics.drawable.GradientDrawable();
-        d.setColor(color);
-        d.setCornerRadius(radius);
-        return d;
-    }
-
-    private int dp(int val) {
-        return Math.round(val * getResources().getDisplayMetrics().density);
-    }
-
-    // ── Overlay show/hide ─────────────────────────────────────────────────
-
-    private void showOverlay() {
-        overlay.setVisibility(View.VISIBLE);
-        scheduleHide();
-    }
-
-    private void scheduleHide() {
-        hideHandler.removeCallbacks(hideOverlay);
-        hideHandler.postDelayed(hideOverlay, HIDE_DELAY);
-    }
-
     // ── Key handling ──────────────────────────────────────────────────────
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        if (event.getAction() == KeyEvent.ACTION_DOWN) {
-            if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-                if (overlay.getVisibility() == View.VISIBLE) {
-                    hideHandler.removeCallbacks(hideOverlay);
-                    overlay.setVisibility(View.GONE);
-                } else {
-                    finish();
-                }
-                return true;
+        if (event.getAction() == KeyEvent.ACTION_DOWN &&
+                event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+            if (playerView.isControllerFullyVisible()) {
+                playerView.hideController();
+            } else {
+                finish();
             }
-            showOverlay();
+            return true;
         }
         return super.dispatchKeyEvent(event);
     }
@@ -196,12 +100,10 @@ public class NativePlayerActivity extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         if (player != null) player.pause();
-        hideHandler.removeCallbacks(hideOverlay);
     }
 
     @Override
     protected void onDestroy() {
-        hideHandler.removeCallbacks(hideOverlay);
         if (player != null) { player.release(); player = null; }
         super.onDestroy();
     }
