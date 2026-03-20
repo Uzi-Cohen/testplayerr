@@ -1,15 +1,14 @@
 package com.streamking.app;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.pm.ActivityInfo;
+import androidx.appcompat.app.AppCompatActivity;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import android.view.WindowManager;
@@ -20,7 +19,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 
-public class NativePlayerActivity extends Activity {
+public class NativePlayerActivity extends AppCompatActivity {
 
     private WebView  webView;
     private FrameLayout container;
@@ -33,11 +32,7 @@ public class NativePlayerActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         // Full-screen, landscape, screen always on
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().addFlags(
-            WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON |
-            WindowManager.LayoutParams.FLAG_FULLSCREEN
-        );
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         hideSystemUI();
 
