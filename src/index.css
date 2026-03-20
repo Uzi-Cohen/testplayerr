@@ -593,14 +593,15 @@
 }
 
 /* Thin top bar — hidden by default, fades in on activity */
-/* Transparent div that holds keyboard focus so D-pad never reaches iframe */
-.player-focus-trap {
+/* Input shield — sits above iframe, captures ALL input so nothing reaches the player */
+.player-shield {
   position: fixed;
   inset: 0;
   z-index: 1;
-  pointer-events: none;   /* clicks/touches pass through to iframe */
+  pointer-events: all;    /* captures everything — D-pad, touch, clicks */
   outline: none;
   background: transparent;
+  cursor: default;
 }
 
 .player-bar {

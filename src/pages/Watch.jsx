@@ -178,11 +178,21 @@ export default function Watch() {
     return () => window.removeEventListener('keydown', handler)
   }, [mode, zone, seasonIdx, episodeIdx, totalSeasons, seasonData, isTv, navigate, openPlayer])
 
-  // ── focus the trap div whenever player mode starts ────────────────────────
+  // ── player mode enter/exit ────────────────────────────────────────────────
   useEffect(() => {
     if (mode === 'player') {
+      // Push a history entry so Android hardware back = exit player, not close app
+      window.history.pushState({ skPlayer: true }, '')
       setTimeout(() => focusTrapRef.current?.focus(), 50)
     }
+  }, [mode])
+
+  // Catch hardware back button (Android) while in player mode
+  useEffect(() => {
+    if (mode !== 'player') return
+    const onPop = () => setMode('detail')
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
   }, [mode])
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -211,12 +221,14 @@ export default function Watch() {
   if (mode === 'player') {
     return (
       <div className="player-fullscreen">
+        {/* iframe — pointer-events:none + tabIndex:-1 so it cannot receive any input */}
         <iframe
           ref={iframeRef}
           key={`${pathMediaType}-${id}-${season}-${episode}`}
           src={embedUrl}
           className="player-iframe"
           tabIndex={-1}
+          style={{ pointerEvents: 'none' }}
           frameBorder="0"
           allowFullScreen
           allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
@@ -225,19 +237,22 @@ export default function Watch() {
         />
 
         {/*
-          Transparent focus trap — sits above the iframe, pointer-events:none so
-          touches/clicks still reach the player, but keyboard focus stays here so
-          D-pad keys never reach the iframe (no accidental skip/volume).
+          Input shield — covers the entire screen above the iframe.
+          pointer-events:all so ALL touch/click/key events land here,
+          not in the iframe. D-pad does nothing except show the overlay.
+          Back is handled by popstate (hardware back) or Escape key.
         */}
         <div
           ref={focusTrapRef}
           tabIndex={0}
-          className="player-focus-trap"
+          className="player-shield"
           onKeyDown={(e) => {
+            e.preventDefault()
             showOverlay()
-            const key = e.key || {27:'Escape',8:'Escape'}[e.keyCode]
-            if (key === 'Escape') { e.preventDefault(); setMode('detail') }
-            else { e.preventDefault() }   // block ALL keys from reaching iframe
+            const key = e.key || { 27: 'Escape', 8: 'Escape' }[e.keyCode]
+            if (key === 'Escape') {
+              window.history.back()  // triggers popstate → setMode('detail')
+            }
           }}
         />
 
