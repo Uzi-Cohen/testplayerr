@@ -119,20 +119,6 @@ public class NativePlayerActivity extends AppCompatActivity {
         if (url != null) webView.loadUrl(url);
     }
 
-    // ── JS helpers to control the video ───────────────────────────────────
-
-    private void js(String script) {
-        if (webView != null) webView.evaluateJavascript(script, null);
-    }
-
-    private void playPause() {
-        js("(function(){var v=document.querySelector('video');if(v){if(v.paused)v.play();else v.pause();}})()");
-    }
-
-    private void seekBy(int seconds) {
-        js("(function(){var v=document.querySelector('video');if(v){v.currentTime=Math.max(0,v.currentTime+" + seconds + ");}})()");
-    }
-
     // ── Overlay builder ───────────────────────────────────────────────────
 
     private View buildOverlay(String title) {
@@ -172,49 +158,6 @@ public class NativePlayerActivity extends AppCompatActivity {
             bar.addView(tv);
         }
 
-        // Spacer
-        View spacer2 = new View(this);
-        bar.addView(spacer2, new LinearLayout.LayoutParams(0, 1, 1f));
-
-        // -10s button
-        TextView rew = new TextView(this);
-        rew.setText("« 10s");
-        rew.setTextColor(Color.WHITE);
-        rew.setTextSize(15);
-        rew.setTypeface(Typeface.DEFAULT_BOLD);
-        rew.setPadding(dp(14), dp(8), dp(14), dp(8));
-        rew.setBackground(makeRoundedBg(Color.argb(80, 255, 255, 255), dp(4)));
-        rew.setOnClickListener(v -> { seekBy(-10); scheduleHide(); });
-        bar.addView(rew);
-
-        View gap1 = new View(this);
-        bar.addView(gap1, new LinearLayout.LayoutParams(dp(12), 1));
-
-        // Play/Pause button
-        TextView pp = new TextView(this);
-        pp.setText("▶ / ⏸");
-        pp.setTextColor(Color.WHITE);
-        pp.setTextSize(15);
-        pp.setTypeface(Typeface.DEFAULT_BOLD);
-        pp.setPadding(dp(14), dp(8), dp(14), dp(8));
-        pp.setBackground(makeRoundedBg(Color.argb(80, 255, 255, 255), dp(4)));
-        pp.setOnClickListener(v -> { playPause(); scheduleHide(); });
-        bar.addView(pp);
-
-        View gap2 = new View(this);
-        bar.addView(gap2, new LinearLayout.LayoutParams(dp(12), 1));
-
-        // +10s button
-        TextView fwd = new TextView(this);
-        fwd.setText("10s »");
-        fwd.setTextColor(Color.WHITE);
-        fwd.setTextSize(15);
-        fwd.setTypeface(Typeface.DEFAULT_BOLD);
-        fwd.setPadding(dp(14), dp(8), dp(14), dp(8));
-        fwd.setBackground(makeRoundedBg(Color.argb(80, 255, 255, 255), dp(4)));
-        fwd.setOnClickListener(v -> { seekBy(10); scheduleHide(); });
-        bar.addView(fwd);
-
         return bar;
     }
 
@@ -242,37 +185,16 @@ public class NativePlayerActivity extends AppCompatActivity {
     }
 
     // ── Key handling ──────────────────────────────────────────────────────
-    // Remote ONLY controls the overlay — nothing ever reaches the WebView.
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             showOverlay();
-            switch (event.getKeyCode()) {
-                case KeyEvent.KEYCODE_BACK:
-                    finish();
-                    return true;
-                case KeyEvent.KEYCODE_DPAD_CENTER:
-                case KeyEvent.KEYCODE_ENTER:
-                case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
-                case KeyEvent.KEYCODE_MEDIA_PLAY:
-                case KeyEvent.KEYCODE_MEDIA_PAUSE:
-                    playPause();
-                    return true;
-                case KeyEvent.KEYCODE_DPAD_RIGHT:
-                case KeyEvent.KEYCODE_MEDIA_FAST_FORWARD:
-                case KeyEvent.KEYCODE_MEDIA_SKIP_FORWARD:
-                    seekBy(10);
-                    return true;
-                case KeyEvent.KEYCODE_DPAD_LEFT:
-                case KeyEvent.KEYCODE_MEDIA_REWIND:
-                case KeyEvent.KEYCODE_MEDIA_SKIP_BACKWARD:
-                    seekBy(-10);
-                    return true;
+            if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+                finish();
             }
         }
-        // Consume everything — nothing reaches the WebView
-        return true;
+        return true; // consume everything, nothing reaches the WebView
     }
 
     // ── Immersive mode ────────────────────────────────────────────────────
