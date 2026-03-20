@@ -145,15 +145,25 @@ export default function HeroSection({ item }) {
               </p>
             )}
 
-            {/* Buttons */}
+            {/* Buttons — focusable via D-pad */}
             <div className="flex items-center gap-3 pt-1">
-              <Link to={`/watch/${mediaType}/${item.id}`} className="btn-red">
+              <Link
+                to={`/watch/${mediaType}/${item.id}`}
+                data-tv-focus="nav"
+                tabIndex={0}
+                className="btn-red"
+              >
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M8 5v14l11-7z" />
                 </svg>
                 Watch Now
               </Link>
-              <Link to={`/watch/${mediaType}/${item.id}`} className="btn-glow">
+              <Link
+                to={`/watch/${mediaType}/${item.id}`}
+                data-tv-focus="nav"
+                tabIndex={0}
+                className="btn-glow"
+              >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>

@@ -4,7 +4,7 @@ import { posterUrl, formatDate } from '../utils/tmdb'
 import { getProgress } from '../utils/progress'
 
 export default function MovieCard({ item }) {
-  const [hovered, setHovered] = useState(false)
+  const [active, setActive] = useState(false)
 
   const mediaType = item.media_type || (item.first_air_date !== undefined ? 'tv' : 'movie')
   const title = item.title || item.name
@@ -18,8 +18,12 @@ export default function MovieCard({ item }) {
     <Link
       to={`/watch/${mediaType}/${item.id}`}
       className="group block card-2010"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      data-tv-focus="card"
+      tabIndex={0}
+      onMouseEnter={() => setActive(true)}
+      onMouseLeave={() => setActive(false)}
+      onFocus={() => setActive(true)}
+      onBlur={() => setActive(false)}
     >
       {/* Poster */}
       <div className="aspect-[2/3] relative overflow-hidden" style={{ background: '#080c16' }}>
@@ -28,7 +32,7 @@ export default function MovieCard({ item }) {
             src={poster}
             alt={title}
             className="w-full h-full object-cover transition-transform duration-500"
-            style={{ transform: hovered ? 'scale(1.12)' : 'scale(1)' }}
+            style={{ transform: active ? 'scale(1.12)' : 'scale(1)' }}
             loading="lazy"
           />
         ) : (
@@ -40,16 +44,14 @@ export default function MovieCard({ item }) {
           </div>
         )}
 
-        {/* Hover overlay — synopsis panel slides up */}
+        {/* Overlay — shows on hover OR focus */}
         <div className="absolute inset-0 flex flex-col justify-end transition-all duration-300"
           style={{
             background: 'linear-gradient(0deg, rgba(4,6,10,0.98) 0%, rgba(4,6,10,0.75) 45%, rgba(4,6,10,0.1) 100%)',
-            opacity: hovered ? 1 : 0,
-            transform: hovered ? 'translateY(0)' : 'translateY(8px)',
+            opacity: active ? 1 : 0,
+            transform: active ? 'translateY(0)' : 'translateY(8px)',
           }}>
           <div className="p-2.5 space-y-1.5">
-
-            {/* Play icon + title */}
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
                 style={{
@@ -67,7 +69,6 @@ export default function MovieCard({ item }) {
               </span>
             </div>
 
-            {/* Stars */}
             {item.vote_average > 0 && (
               <div className="flex items-center gap-1">
                 {[1,2,3,4,5].map(s => (
@@ -80,7 +81,6 @@ export default function MovieCard({ item }) {
               </div>
             )}
 
-            {/* Overview */}
             {item.overview && (
               <p className="line-clamp-3 leading-snug" style={{ color: '#3a5872', fontSize: '9px' }}>
                 {item.overview}
@@ -137,7 +137,7 @@ export default function MovieCard({ item }) {
         borderTop: '1px solid rgba(255,255,255,0.04)',
       }}>
         <p className="text-xs font-display font-semibold truncate uppercase"
-          style={{ color: hovered ? '#c8dcea' : '#7a9ab8', fontSize: '10px', letterSpacing: '0.07em', transition: 'color 0.2s' }}>
+          style={{ color: active ? '#c8dcea' : '#7a9ab8', fontSize: '10px', letterSpacing: '0.07em', transition: 'color 0.2s' }}>
           {title}
         </p>
         <div className="flex items-center justify-between mt-0.5">

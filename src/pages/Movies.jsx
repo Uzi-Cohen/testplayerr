@@ -35,7 +35,11 @@ export default function Movies() {
         <div className="flex gap-1.5 rounded p-1"
           style={{ background: 'rgba(13,22,38,0.9)', border: '1px solid rgba(26,127,212,0.2)' }}>
           {SORTS.map(s => (
-            <button key={s.key} onClick={() => setSortKey(s.key)}
+            <button
+              key={s.key}
+              data-tv-focus="nav"
+              tabIndex={0}
+              onClick={() => setSortKey(s.key)}
               className="px-3 py-1.5 text-xs rounded font-display uppercase tracking-wider transition-all"
               style={s.key === sortKey ? {
                 background: 'linear-gradient(180deg, #1a7fd4, #0d4a8a)',
@@ -50,10 +54,14 @@ export default function Movies() {
 
       {/* Genre chips */}
       {genres.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+        <div className="flex gap-2 overflow-x-auto pb-1 tv-row-scroll" style={{ scrollbarWidth: 'none' }}>
           <GenreChip label="All" active={!activeGenre} onClick={() => setActiveGenre(null)} />
           {genres.map(g => (
-            <GenreChip key={g.id} label={g.name} active={activeGenre === g.id} onClick={() => setActiveGenre(g.id === activeGenre ? null : g.id)} />
+            <GenreChip
+              key={g.id} label={g.name}
+              active={activeGenre === g.id}
+              onClick={() => setActiveGenre(g.id === activeGenre ? null : g.id)}
+            />
           ))}
         </div>
       )}
@@ -71,6 +79,8 @@ export default function Movies() {
 function GenreChip({ label, active, onClick }) {
   return (
     <button
+      data-tv-focus="nav"
+      tabIndex={0}
       onClick={onClick}
       className="shrink-0 px-3 py-1 rounded-full text-xs font-display uppercase tracking-wider transition-all"
       style={active ? {

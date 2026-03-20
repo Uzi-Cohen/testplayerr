@@ -41,6 +41,8 @@ export default function ContentGrid({ items, loading, error, loadMore, hasMore, 
           <button
             onClick={loadMore}
             disabled={loading}
+            data-tv-focus="nav"
+            tabIndex={0}
             className="btn-glow disabled:opacity-50"
           >
             {loading ? 'Loading...' : 'Load More'}

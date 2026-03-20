@@ -5,14 +5,41 @@ import HeroSection from '../components/HeroSection'
 import Section from '../components/Section'
 import Spinner from '../components/Spinner'
 
+// TMDB genre IDs for movies
+const GENRE_ACTION   = 28
+const GENRE_COMEDY   = 35
+const GENRE_HORROR   = 27
+const GENRE_SCIFI    = 878
+const GENRE_THRILLER = 53
+const GENRE_CRIME    = 80
+// TMDB genre IDs for TV
+const GENRE_TV_DRAMA  = 18
+const GENRE_TV_SCIFI  = 10765
+const GENRE_TV_CRIME  = 80
+
 export default function Home() {
   const { data: trending, loading, error } = useTMDB(() => tmdb.trending('week'), [])
-  const { data: popularMovies } = useTMDB(() => tmdb.popularMovies(), [])
-  const { data: popularTV } = useTMDB(() => tmdb.popularTV(), [])
-  const { data: nowPlaying } = useTMDB(() => tmdb.nowPlayingMovies(), [])
+  const { data: popularMovies }  = useTMDB(() => tmdb.popularMovies(), [])
+  const { data: popularTV }      = useTMDB(() => tmdb.popularTV(), [])
+  const { data: nowPlaying }     = useTMDB(() => tmdb.nowPlayingMovies(), [])
+  const { data: topRated }       = useTMDB(() => tmdb.topRatedMovies(), [])
+  const { data: actionMovies }   = useTMDB(() => tmdb.discoverMovies(1, GENRE_ACTION,   'popularity.desc'), [])
+  const { data: comedyMovies }   = useTMDB(() => tmdb.discoverMovies(1, GENRE_COMEDY,   'popularity.desc'), [])
+  const { data: horrorMovies }   = useTMDB(() => tmdb.discoverMovies(1, GENRE_HORROR,   'popularity.desc'), [])
+  const { data: scifiMovies }    = useTMDB(() => tmdb.discoverMovies(1, GENRE_SCIFI,    'popularity.desc'), [])
+  const { data: thrillerMovies } = useTMDB(() => tmdb.discoverMovies(1, GENRE_THRILLER, 'popularity.desc'), [])
+  const { data: crimeMovies }    = useTMDB(() => tmdb.discoverMovies(1, GENRE_CRIME,    'popularity.desc'), [])
+  const { data: dramaTV }        = useTMDB(() => tmdb.discoverTV(1, GENRE_TV_DRAMA,  'popularity.desc'), [])
+  const { data: scifiTV }        = useTMDB(() => tmdb.discoverTV(1, GENRE_TV_SCIFI,  'popularity.desc'), [])
+  const { data: crimeTV }        = useTMDB(() => tmdb.discoverTV(1, GENRE_TV_CRIME,  'popularity.desc'), [])
+  const { data: topRatedTV }     = useTMDB(() => tmdb.topRatedTV(), [])
+  const { data: airingTV }       = useTMDB(() => tmdb.airingTV(), [])
 
   const history = getWatchHistory()
   const hero = trending?.results?.[0]
+
+  const tag = (items, mediaType) =>
+    items?.results?.slice(0, 20).map(i => ({ ...i, media_type: mediaType })) || []
 
   if (loading) {
     return (
@@ -51,6 +78,8 @@ export default function Home() {
       <HeroSection item={hero} />
 
       <div className="max-w-7xl mx-auto px-3 sm:px-4 py-8 space-y-10">
+
+        {/* ── Continue Watching ── */}
         {history.length > 0 && (
           <Section
             title="Continue Watching"
@@ -67,27 +96,106 @@ export default function Home() {
           />
         )}
 
+        {/* ── Trending ── */}
         <Section
           title="Trending This Week"
-          items={trending?.results?.slice(1) || []}
+          items={trending?.results?.slice(1, 21) || []}
         />
 
+        {/* ── Now Playing ── */}
         <Section
           title="Now Playing in Theaters"
-          items={nowPlaying?.results?.map(i => ({ ...i, media_type: 'movie' })) || []}
+          items={tag(nowPlaying, 'movie')}
           viewAllLink="/movies"
         />
 
+        {/* ── Top Rated Movies ── */}
+        <Section
+          title="Top Rated Movies"
+          items={tag(topRated, 'movie')}
+          viewAllLink="/movies"
+        />
+
+        {/* ── Popular Movies ── */}
         <Section
           title="Popular Movies"
-          items={popularMovies?.results?.map(i => ({ ...i, media_type: 'movie' })) || []}
+          items={tag(popularMovies, 'movie')}
           viewAllLink="/movies"
         />
 
+        {/* ── Action & Adventure ── */}
+        <Section
+          title="Action & Adventure"
+          items={tag(actionMovies, 'movie')}
+        />
+
+        {/* ── Comedy ── */}
+        <Section
+          title="Comedy"
+          items={tag(comedyMovies, 'movie')}
+        />
+
+        {/* ── Sci-Fi ── */}
+        <Section
+          title="Sci-Fi"
+          items={tag(scifiMovies, 'movie')}
+        />
+
+        {/* ── Horror ── */}
+        <Section
+          title="Horror"
+          items={tag(horrorMovies, 'movie')}
+        />
+
+        {/* ── Thriller ── */}
+        <Section
+          title="Thriller"
+          items={tag(thrillerMovies, 'movie')}
+        />
+
+        {/* ── Crime ── */}
+        <Section
+          title="Crime"
+          items={tag(crimeMovies, 'movie')}
+        />
+
+        {/* ── Popular TV Shows ── */}
         <Section
           title="Popular TV Shows"
-          items={popularTV?.results?.map(i => ({ ...i, media_type: 'tv' })) || []}
+          items={tag(popularTV, 'tv')}
           viewAllLink="/tv"
+        />
+
+        {/* ── Airing Now ── */}
+        <Section
+          title="Airing Now"
+          items={tag(airingTV, 'tv')}
+          viewAllLink="/tv"
+        />
+
+        {/* ── Top Rated Series ── */}
+        <Section
+          title="Top Rated Series"
+          items={tag(topRatedTV, 'tv')}
+          viewAllLink="/tv"
+        />
+
+        {/* ── Drama Series ── */}
+        <Section
+          title="Drama Series"
+          items={tag(dramaTV, 'tv')}
+        />
+
+        {/* ── Sci-Fi & Fantasy Series ── */}
+        <Section
+          title="Sci-Fi & Fantasy Series"
+          items={tag(scifiTV, 'tv')}
+        />
+
+        {/* ── Crime Series ── */}
+        <Section
+          title="Crime Series"
+          items={tag(crimeTV, 'tv')}
         />
       </div>
 

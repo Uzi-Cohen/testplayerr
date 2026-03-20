@@ -13,7 +13,7 @@ export default function Navbar() {
     }}>
       <div className="max-w-7xl mx-auto px-3 sm:px-5 h-14 flex items-center gap-3 sm:gap-5">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2.5 shrink-0">
+        <Link to="/" data-tv-focus="nav" tabIndex={0} className="flex items-center gap-2.5 shrink-0">
           <div className="w-8 h-8 rounded flex items-center justify-center font-display font-bold text-xs"
             style={{
               background: 'linear-gradient(135deg, #1a7fd4, #0d4a8a)',
@@ -40,7 +40,7 @@ export default function Navbar() {
 
         <div className="flex-1" />
 
-        {/* Live autocomplete search */}
+        {/* Search */}
         <SearchAutocomplete />
       </div>
 
@@ -53,6 +53,8 @@ function NavLink({ to, active, children }) {
   return (
     <Link
       to={to}
+      data-tv-focus="nav"
+      tabIndex={0}
       className="px-3 py-1.5 rounded text-xs sm:text-sm font-display uppercase tracking-wider transition-all duration-200"
       style={active ? {
         color: '#7ecfff',
