@@ -36,7 +36,9 @@ export default function Watch() {
         setLoading(false)
 
         const endpoint = isTv ? `/tv/${id}/similar` : `/movie/${id}/similar`
-        fetch(`https://api.themoviedb.org/3${endpoint}?api_key=${import.meta.env.VITE_TMDB_API_KEY}`)
+        fetch(`https://api.themoviedb.org/3${endpoint}`, {
+            headers: { Authorization: `Bearer ${import.meta.env.VITE_TMDB_ACCESS_TOKEN}`, accept: 'application/json' },
+          })
           .then(r => r.json())
           .then(d => setSimilar(d.results?.slice(0, 12).map(i => ({ ...i, media_type: pathMediaType })) || []))
           .catch(() => {})

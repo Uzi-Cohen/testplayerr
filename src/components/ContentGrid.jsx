@@ -8,8 +8,8 @@ export default function ContentGrid({ items, loading, error, loadMore, hasMore, 
         <p className="font-display text-lg uppercase tracking-wider" style={{ color: '#e05050' }}>{error}</p>
         {error.includes('API key') && (
           <p className="text-sm mt-3" style={{ color: '#3a5a7a' }}>
-            Add your TMDB API key to a <code className="px-1 rounded" style={{ background: '#0d1626', color: '#7ecfff' }}>.env</code> file as{' '}
-            <code className="px-1 rounded" style={{ background: '#0d1626', color: '#7ecfff' }}>VITE_TMDB_API_KEY</code>
+            Add your TMDB API Read Access Token to a <code className="px-1 rounded" style={{ background: '#0d1626', color: '#7ecfff' }}>.env</code> file as{' '}
+            <code className="px-1 rounded" style={{ background: '#0d1626', color: '#7ecfff' }}>VITE_TMDB_ACCESS_TOKEN</code>
           </p>
         )}
       </div>

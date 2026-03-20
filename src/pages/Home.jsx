@@ -35,11 +35,11 @@ export default function Home() {
             border: '1px solid rgba(26,127,212,0.2)',
           }}>
             <p style={{ color: '#3a5a7a' }}># .env</p>
-            <p style={{ color: '#7ecfff' }}>VITE_TMDB_API_KEY=your_key_here</p>
+            <p style={{ color: '#7ecfff' }}>VITE_TMDB_ACCESS_TOKEN=your_token_here</p>
           </div>
           <a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noreferrer"
             className="inline-block text-sm underline" style={{ color: '#1a9fff' }}>
-            Get a free TMDB API key →
+            Get a free TMDB API Read Access Token →
           </a>
         </div>
       </div>
