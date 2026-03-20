@@ -189,12 +189,20 @@ public class NativePlayerActivity extends AppCompatActivity {
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
-            showOverlay();
             if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-                finish();
+                if (overlay.getVisibility() == View.VISIBLE) {
+                    // overlay open → just close it
+                    hideHandler.removeCallbacks(hideOverlay);
+                    overlay.setVisibility(View.GONE);
+                } else {
+                    // overlay not open → close the player
+                    finish();
+                }
+                return true;
             }
+            showOverlay();
         }
-        return true; // consume everything, nothing reaches the WebView
+        return true;
     }
 
     // ── Immersive mode ────────────────────────────────────────────────────
