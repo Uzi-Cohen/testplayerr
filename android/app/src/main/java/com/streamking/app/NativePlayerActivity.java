@@ -1,6 +1,5 @@
 package com.streamking.app;
 
-import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -11,28 +10,28 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.webkit.WebChromeClient;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.OptIn;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.media3.common.MediaItem;
+import androidx.media3.common.util.UnstableApi;
+import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.ui.PlayerView;
 
+@OptIn(markerClass = UnstableApi.class)
 public class NativePlayerActivity extends AppCompatActivity {
 
-    private WebView     webView;
-    private View        overlay;
-    private View        customView;
-    private WebChromeClient.CustomViewCallback customViewCallback;
+    private ExoPlayer  player;
+    private PlayerView playerView;
+    private View       overlay;
 
-    private final Handler  hideHandler  = new Handler(Looper.getMainLooper());
-    private final Runnable hideOverlay  = () -> overlay.setVisibility(View.GONE);
-    private static final int HIDE_DELAY = 3000; // ms
+    private final Handler  hideHandler = new Handler(Looper.getMainLooper());
+    private final Runnable hideOverlay = () -> overlay.setVisibility(View.GONE);
+    private static final int HIDE_DELAY = 3000;
 
-    @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,68 +42,21 @@ public class NativePlayerActivity extends AppCompatActivity {
         String url   = getIntent().getStringExtra("url");
         String title = getIntent().getStringExtra("title");
 
-        // ── Root container ────────────────────────────────────────────────
+        // ── Root ──────────────────────────────────────────────────────────
         FrameLayout root = new FrameLayout(this);
         root.setBackgroundColor(Color.BLACK);
         setContentView(root);
 
-        // ── WebView ───────────────────────────────────────────────────────
-        webView = new WebView(this);
-        webView.setBackgroundColor(Color.BLACK);
-
-        WebSettings s = webView.getSettings();
-        s.setJavaScriptEnabled(true);
-        s.setDomStorageEnabled(true);
-        s.setMediaPlaybackRequiresUserGesture(false);
-        s.setLoadWithOverviewMode(true);
-        s.setUseWideViewPort(true);
-        s.setBuiltInZoomControls(false);
-        s.setDisplayZoomControls(false);
-        s.setCacheMode(WebSettings.LOAD_DEFAULT);
-        s.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
-        s.setUserAgentString(
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
-            "AppleWebKit/537.36 (KHTML, like Gecko) " +
-            "Chrome/124.0.0.0 Safari/537.36"
-        );
-
-        // WebView must NOT be focusable — remote keys must never reach it directly
-        webView.setFocusable(false);
-        webView.setFocusableInTouchMode(false);
-
-        webView.setWebViewClient(new WebViewClient());
-        webView.setWebChromeClient(new WebChromeClient() {
-            @Override
-            public void onShowCustomView(View view, CustomViewCallback cb) {
-                if (customView != null) { cb.onCustomViewHidden(); return; }
-                customView = view;
-                customViewCallback = cb;
-                webView.setVisibility(View.GONE);
-                root.addView(customView, new FrameLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT
-                ));
-                overlay.bringToFront();
-            }
-            @Override
-            public void onHideCustomView() {
-                if (customView == null) return;
-                root.removeView(customView);
-                customView = null;
-                if (customViewCallback != null) {
-                    customViewCallback.onCustomViewHidden();
-                    customViewCallback = null;
-                }
-                webView.setVisibility(View.VISIBLE);
-            }
-        });
-
-        root.addView(webView, new FrameLayout.LayoutParams(
+        // ── PlayerView ────────────────────────────────────────────────────
+        playerView = new PlayerView(this);
+        playerView.setUseController(false); // custom overlay instead
+        playerView.setBackgroundColor(Color.BLACK);
+        root.addView(playerView, new FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT
         ));
 
-        // ── Overlay (top bar) ─────────────────────────────────────────────
+        // ── Overlay ───────────────────────────────────────────────────────
         overlay = buildOverlay(title);
         FrameLayout.LayoutParams olp = new FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
@@ -112,11 +64,21 @@ public class NativePlayerActivity extends AppCompatActivity {
         );
         olp.gravity = Gravity.TOP;
         root.addView(overlay, olp);
-
-        // Show briefly on launch, then hide
         scheduleHide();
 
-        if (url != null) webView.loadUrl(url);
+        // ── Player ────────────────────────────────────────────────────────
+        if (url != null) initPlayer(url);
+    }
+
+    private void initPlayer(String url) {
+        player = new ExoPlayer.Builder(this)
+                .setSeekBackIncrementMs(10_000)
+                .setSeekForwardIncrementMs(10_000)
+                .build();
+        playerView.setPlayer(player);
+        player.setMediaItem(MediaItem.fromUri(url));
+        player.prepare();
+        player.setPlayWhenReady(true);
     }
 
     // ── Overlay builder ───────────────────────────────────────────────────
@@ -128,7 +90,6 @@ public class NativePlayerActivity extends AppCompatActivity {
         bar.setGravity(Gravity.CENTER_VERTICAL);
         bar.setPadding(dp(20), dp(14), dp(20), dp(14));
 
-        // Back button
         TextView back = new TextView(this);
         back.setText("← Back");
         back.setTextColor(Color.parseColor("#00c896"));
@@ -141,11 +102,9 @@ public class NativePlayerActivity extends AppCompatActivity {
         back.setOnClickListener(v -> finish());
         bar.addView(back);
 
-        // Spacer
         View spacer = new View(this);
         bar.addView(spacer, new LinearLayout.LayoutParams(0, 1, 1f));
 
-        // Title
         if (title != null && !title.isEmpty()) {
             TextView tv = new TextView(this);
             tv.setText(title.toUpperCase());
@@ -191,18 +150,16 @@ public class NativePlayerActivity extends AppCompatActivity {
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
                 if (overlay.getVisibility() == View.VISIBLE) {
-                    // overlay open → just close it
                     hideHandler.removeCallbacks(hideOverlay);
                     overlay.setVisibility(View.GONE);
                 } else {
-                    // overlay not open → close the player
                     finish();
                 }
                 return true;
             }
             showOverlay();
         }
-        return true;
+        return super.dispatchKeyEvent(event);
     }
 
     // ── Immersive mode ────────────────────────────────────────────────────
@@ -231,21 +188,21 @@ public class NativePlayerActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (webView != null) { webView.onResume(); webView.resumeTimers(); }
+        if (player != null) player.play();
         hideSystemUI();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        if (webView != null) { webView.onPause(); webView.pauseTimers(); }
+        if (player != null) player.pause();
         hideHandler.removeCallbacks(hideOverlay);
     }
 
     @Override
     protected void onDestroy() {
         hideHandler.removeCallbacks(hideOverlay);
-        if (webView != null) { webView.destroy(); webView = null; }
+        if (player != null) { player.release(); player = null; }
         super.onDestroy();
     }
 }
