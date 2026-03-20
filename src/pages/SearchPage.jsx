@@ -130,7 +130,7 @@ export default function SearchPage() {
             onChange={e => { setQuery(e.target.value); if (showSug) setSugIdx(-1) }}
             onKeyDown={handleKeyDown}
             onFocus={() => suggestions.length > 0 && setShowSug(true)}
-            onBlur={() => setTimeout(() => setShowSug(false), 200)}
+            onBlur={() => setTimeout(() => setShowSug(false), 300)}
             placeholder="Search movies and TV shows…"
             className="tv-search-input"
             autoComplete="off"
@@ -150,9 +150,10 @@ export default function SearchPage() {
               return (
                 <button
                   key={item.id}
+                  type="button"
                   className={`search-sug-item ${i === sugIdx ? 'search-sug-item--focused' : ''}`}
                   onMouseEnter={() => setSugIdx(i)}
-                  onMouseDown={() => pickSuggestion(item)}
+                  onClick={() => pickSuggestion(item)}
                 >
                   {item.poster_path && (
                     <img
