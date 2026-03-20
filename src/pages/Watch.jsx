@@ -39,9 +39,10 @@ export default function Watch() {
 
   // player overlay (only shown in player mode)
   const [overlayVisible, showOverlay] = useAutoHide(3500)
-  const iframeRef = useRef(null)
-  const detailsRef = useRef(null)
-  const epScrollRef = useRef(null)
+  const iframeRef    = useRef(null)
+  const focusTrapRef = useRef(null)
+  const detailsRef   = useRef(null)
+  const epScrollRef  = useRef(null)
 
   // ── detail-page D-pad zones ───────────────────────────────────────────────
   // zones: 'play' | 'seasons' | 'episodes'
@@ -138,21 +139,25 @@ export default function Watch() {
       if (key === 'Escape') { navigate(-1); return }
       e.preventDefault()
 
+      // UP / DOWN
       if (key === 'ArrowUp') {
-        if (zone === 'episodes') { setZone('seasons'); return }
-        if (zone === 'seasons')  { setZone('play'); return }
+        if (zone === 'episodes') {
+          if (episodeIdx > 0) { setEpisodeIdx(s => s - 1); return }
+          else { setZone('seasons'); return }           // top of list → back to seasons
+        }
+        if (zone === 'seasons') { setZone('play'); return }
       }
       if (key === 'ArrowDown') {
-        if (zone === 'play' && isTv)    { setZone('seasons'); return }
-        if (zone === 'seasons' && episodes.length) { setZone('episodes'); return }
+        if (zone === 'episodes') { setEpisodeIdx(s => Math.min(maxEp, s + 1)); return }
+        if (zone === 'play' && isTv)                    { setZone('seasons'); return }
+        if (zone === 'seasons' && episodes.length)      { setZone('episodes'); return }
       }
+      // LEFT / RIGHT — only for season tabs
       if (key === 'ArrowLeft') {
-        if (zone === 'seasons')  setSeasonIdx(s => Math.max(0, s - 1))
-        if (zone === 'episodes') setEpisodeIdx(s => Math.max(0, s - 1))
+        if (zone === 'seasons') setSeasonIdx(s => Math.max(0, s - 1))
       }
       if (key === 'ArrowRight') {
-        if (zone === 'seasons')  setSeasonIdx(s => Math.min(totalSeasons - 1, s + 1))
-        if (zone === 'episodes') setEpisodeIdx(s => Math.min(maxEp, s + 1))
+        if (zone === 'seasons') setSeasonIdx(s => Math.min(totalSeasons - 1, s + 1))
       }
       if (key === 'Enter') {
         if (zone === 'play') { openPlayer(); return }
@@ -173,21 +178,12 @@ export default function Watch() {
     return () => window.removeEventListener('keydown', handler)
   }, [mode, zone, seasonIdx, episodeIdx, totalSeasons, seasonData, isTv, navigate, openPlayer])
 
-  // ── keydown — player mode ─────────────────────────────────────────────────
+  // ── focus the trap div whenever player mode starts ────────────────────────
   useEffect(() => {
-    if (mode !== 'player') return
-    const handler = (e) => {
-      const key = e.key || {27:'Escape',8:'Escape'}[e.keyCode]
-      // Any key shows the overlay
-      showOverlay()
-      if (key === 'Escape') {
-        e.preventDefault()
-        setMode('detail')
-      }
+    if (mode === 'player') {
+      setTimeout(() => focusTrapRef.current?.focus(), 50)
     }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [mode, showOverlay])
+  }, [mode])
 
   // ─────────────────────────────────────────────────────────────────────────
   if (loading) return <div className="tv-loading"><Spinner /></div>
@@ -220,12 +216,31 @@ export default function Watch() {
           key={`${pathMediaType}-${id}-${season}-${episode}`}
           src={embedUrl}
           className="player-iframe"
+          tabIndex={-1}
           frameBorder="0"
           allowFullScreen
           allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
           title={`Watch ${title}`}
           sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-pointer-lock"
         />
+
+        {/*
+          Transparent focus trap — sits above the iframe, pointer-events:none so
+          touches/clicks still reach the player, but keyboard focus stays here so
+          D-pad keys never reach the iframe (no accidental skip/volume).
+        */}
+        <div
+          ref={focusTrapRef}
+          tabIndex={0}
+          className="player-focus-trap"
+          onKeyDown={(e) => {
+            showOverlay()
+            const key = e.key || {27:'Escape',8:'Escape'}[e.keyCode]
+            if (key === 'Escape') { e.preventDefault(); setMode('detail') }
+            else { e.preventDefault() }   // block ALL keys from reaching iframe
+          }}
+        />
+
         {/* Auto-hiding top bar */}
         <div className={`player-bar ${overlayVisible ? 'player-bar--visible' : ''}`}>
           <button className="player-back" onClick={() => setMode('detail')}>← Back</button>

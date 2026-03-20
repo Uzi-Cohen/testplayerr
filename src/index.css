@@ -593,6 +593,16 @@
 }
 
 /* Thin top bar — hidden by default, fades in on activity */
+/* Transparent div that holds keyboard focus so D-pad never reaches iframe */
+.player-focus-trap {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;   /* clicks/touches pass through to iframe */
+  outline: none;
+  background: transparent;
+}
+
 .player-bar {
   position: absolute;
   top: 0;
