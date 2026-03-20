@@ -118,6 +118,12 @@ public class NativePlayerActivity extends AppCompatActivity {
 
         buildOverlay(title, root);
 
+        // Tap anywhere on the WebView to bring the overlay back
+        webView.setOnTouchListener((v, e) -> {
+            if (e.getAction() == android.view.MotionEvent.ACTION_UP) showOverlay();
+            return false; // pass touch through to WebView
+        });
+
         if (url != null) webView.loadUrl(url);
 
         mainHandler.post(clockTick);
