@@ -31,7 +31,6 @@ public class NativePlayerActivity extends AppCompatActivity {
     private View     customView;
     private WebChromeClient.CustomViewCallback customViewCallback;
 
-    private View     controls;          // full-screen tappable layer
     private View     topBar;
     private View     bottomBar;
     private TextView titleView;
@@ -113,8 +112,7 @@ public class NativePlayerActivity extends AppCompatActivity {
         root.addView(webView, matchParent());
 
         // ── Controls overlay ───────────────────────────────────────────────
-        controls = buildControls(title);
-        root.addView(controls, matchParent());
+        buildControls(title, root);
 
         if (url != null) webView.loadUrl(url);
         scheduleHide();
@@ -161,7 +159,8 @@ public class NativePlayerActivity extends AppCompatActivity {
                     root.addView(customView, new FrameLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT));
-                    controls.bringToFront();
+                    topBar.bringToFront();
+                    bottomBar.bringToFront();
                 }
             }
             @Override
@@ -180,11 +179,7 @@ public class NativePlayerActivity extends AppCompatActivity {
 
     // ── Controls UI builder ────────────────────────────────────────────────
 
-    private View buildControls(String title) {
-        // Root frame — tapping shows/hides controls
-        FrameLayout frame = new FrameLayout(this);
-        frame.setOnClickListener(v -> toggleControls());
-
+    private void buildControls(String title, FrameLayout root) {
         // ── Top bar ────────────────────────────────────────────────────────
         topBar = new LinearLayout(this);
         ((LinearLayout) topBar).setOrientation(LinearLayout.HORIZONTAL);
@@ -222,7 +217,7 @@ public class NativePlayerActivity extends AppCompatActivity {
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT);
         topParams.gravity = Gravity.TOP;
-        frame.addView(topBar, topParams);
+        root.addView(topBar, topParams);
 
         // ── Bottom bar ─────────────────────────────────────────────────────
         bottomBar = new LinearLayout(this);
@@ -288,9 +283,7 @@ public class NativePlayerActivity extends AppCompatActivity {
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT);
         botParams.gravity = Gravity.BOTTOM;
-        frame.addView(bottomBar, botParams);
-
-        return frame;
+        root.addView(bottomBar, botParams);
     }
 
     // ── JS bridge (called from WebView thread) ─────────────────────────────
