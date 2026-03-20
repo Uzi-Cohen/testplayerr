@@ -6,12 +6,12 @@ import { getProgress } from '../utils/progress'
 import Spinner from '../components/Spinner'
 import { registerPlugin } from '@capacitor/core'
 
-const ExternalBrowser = registerPlugin('ExternalBrowser', {
+const NativePlayer = registerPlugin('NativePlayer', {
   web: { open: ({ url }) => { window.open(url, '_blank'); return Promise.resolve() } },
 })
 
-function openInBrowser(url) {
-  ExternalBrowser.open({ url }).catch(() => window.open(url, '_blank'))
+function openPlayer(url) {
+  NativePlayer.open({ url }).catch(() => window.open(url, '_blank'))
 }
 
 export default function Watch() {
@@ -68,7 +68,7 @@ export default function Watch() {
     const url   = isTv
       ? tvUrl(id, s, e, { autoPlay: true, nextEpisode: true, episodeSelector: true, progress: ts })
       : movieUrl(id, { autoPlay: true, progress: ts })
-    openInBrowser(url)
+    openPlayer(url)
   }
 
   // ── scroll focused episode into view ──────────────────────────────────────

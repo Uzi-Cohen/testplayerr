@@ -6,7 +6,7 @@ import android.os.Bundle;
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        registerPlugin(ExternalBrowserPlugin.class);
+        registerPlugin(NativePlayerPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }
