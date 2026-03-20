@@ -194,10 +194,12 @@ public class NativePlayerActivity extends AppCompatActivity {
             showOverlay();
             if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
                 finish();
+                return true;
             }
         }
-        // *** Do NOT pass ANY keys to the WebView ***
-        return true;
+        // Forward all other keys to WebView so the player controls work
+        if (webView != null) return webView.dispatchKeyEvent(event);
+        return super.dispatchKeyEvent(event);
     }
 
     // ── Immersive mode ────────────────────────────────────────────────────
