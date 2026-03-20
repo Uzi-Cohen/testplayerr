@@ -1,8 +1,10 @@
 package com.streamking.app;
 
+import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -11,87 +13,45 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.FrameLayout;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 public class NativePlayerActivity extends AppCompatActivity {
 
-    // ── State ──────────────────────────────────────────────────────────────
-    private WebView  webView;
-    private View     customView;
+    private WebView webView;
+    private View    customView;
     private WebChromeClient.CustomViewCallback customViewCallback;
 
-    private View     topBar;
-    private View     bottomBar;
-    private TextView titleView;
-    private ImageButton playPauseBtn;
-    private SeekBar  seekBar;
-    private TextView timeView;
+    private View    topBar;
 
-    private boolean  isPlaying  = false;
-    private boolean  videoReady = false;
-    private double   duration   = 0;
-    private double   currentTime = 0;
-    private boolean  seekBarTracking = false;
+    private final Handler  hideHandler   = new Handler(Looper.getMainLooper());
+    private final Runnable hideRunnable  = this::fadeOutBar;
+    private static final int HIDE_DELAY_MS = 4000;
 
-    private final Handler handler       = new Handler(Looper.getMainLooper());
-    private final Handler hideHandler   = new Handler(Looper.getMainLooper());
-    private final Runnable hideRunnable = this::hideControls;
-    private static final int HIDE_DELAY_MS = 3500;
-
-    // ── JS injected into the embed page ───────────────────────────────────
-    private static final String INJECT_JS =
+    // ── Injected CSS: hides the server/source selector in the embed ────────
+    private static final String INJECT_CSS =
         "(function(){" +
-        "  var b = window.VideoAndroidBridge;" +
-        "  if(!b) return;" +
-        "  var video = null;" +
-        "  function find(){" +
-        "    var v = document.querySelector('video');" +
-        "    if(v) return v;" +
-        "    var fs = document.querySelectorAll('iframe');" +
-        "    for(var i=0;i<fs.length;i++){" +
-        "      try{ var fv=fs[i].contentDocument.querySelector('video'); if(fv) return fv; }catch(e){}" +
-        "    }" +
-        "    return null;" +
-        "  }" +
-        "  var t = setInterval(function(){" +
-        "    video = find();" +
-        "    if(!video) return;" +
-        "    clearInterval(t);" +
-        "    video.removeAttribute('controls');" +
-        "    video.addEventListener('timeupdate', function(){" +
-        "      b.onTimeUpdate(video.currentTime, isNaN(video.duration)?0:video.duration);" +
-        "    });" +
-        "    video.addEventListener('play',  function(){ b.onPlayState(true);  });" +
-        "    video.addEventListener('pause', function(){ b.onPlayState(false); });" +
-        "    video.addEventListener('ended', function(){ b.onPlayState(false); });" +
-        "    video.addEventListener('durationchange', function(){" +
-        "      b.onVideoReady(isNaN(video.duration)?0:video.duration);" +
-        "    });" +
-        "    b.onVideoReady(isNaN(video.duration)?0:video.duration);" +
-        "    b.onPlayState(!video.paused);" +
-        "  }, 500);" +
-        "  window.VideoCmd = {" +
-        "    play:   function(){ if(video) video.play(); }," +
-        "    pause:  function(){ if(video) video.pause(); }," +
-        "    toggle: function(){ if(!video) return; if(video.paused) video.play(); else video.pause(); }," +
-        "    seek:   function(t){ if(video){ video.currentTime=t; } }" +
-        "  };" +
+        "  var s = document.createElement('style');" +
+        "  s.textContent = '" +
+        "    .server-list, .servers, .server-tab, .server-item," +
+        "    .ep-server, .nav-server, .source-tab, .sources-tabs," +
+        "    [class*=\"server\"], [class*=\"source-select\"]," +
+        "    [class*=\"ServerList\"], [class*=\"SourceList\"]" +
+        "    { display: none !important; }" +
+        "  ';" +
+        "  (document.head || document.documentElement).appendChild(s);" +
         "})();";
 
-    // ── Activity lifecycle ─────────────────────────────────────────────────
+    // ── Lifecycle ──────────────────────────────────────────────────────────
 
-    @SuppressLint({"SetJavaScriptEnabled","ClickableViewAccessibility"})
+    @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -108,20 +68,25 @@ public class NativePlayerActivity extends AppCompatActivity {
         // ── WebView ────────────────────────────────────────────────────────
         webView = new WebView(this);
         webView.setBackgroundColor(Color.BLACK);
-        configureWebView(title);
+        configureWebView(root);
         root.addView(webView, matchParent());
 
-        // ── Controls overlay ───────────────────────────────────────────────
-        buildControls(title, root);
+        // ── Top bar ────────────────────────────────────────────────────────
+        topBar = buildTopBar(title);
+        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.gravity = Gravity.TOP;
+        root.addView(topBar, lp);
 
         if (url != null) webView.loadUrl(url);
         scheduleHide();
     }
 
-    // ── WebView setup ──────────────────────────────────────────────────────
+    // ── WebView ────────────────────────────────────────────────────────────
 
     @SuppressLint("SetJavaScriptEnabled")
-    private void configureWebView(String pageTitle) {
+    private void configureWebView(FrameLayout root) {
         WebSettings s = webView.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
@@ -138,16 +103,13 @@ public class NativePlayerActivity extends AppCompatActivity {
             "Chrome/124.0.0.0 Safari/537.36"
         );
 
-        webView.addJavascriptInterface(new VideoBridge(), "VideoAndroidBridge");
-
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageFinished(WebView view, String url) {
-                view.evaluateJavascript(INJECT_JS, null);
+                view.evaluateJavascript(INJECT_CSS, null);
             }
         });
 
-        FrameLayout root = (FrameLayout) webView.getParent();
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onShowCustomView(View view, CustomViewCallback cb) {
@@ -155,18 +117,13 @@ public class NativePlayerActivity extends AppCompatActivity {
                 customView = view;
                 customViewCallback = cb;
                 webView.setVisibility(View.GONE);
-                if (root != null) {
-                    root.addView(customView, new FrameLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT));
-                    topBar.bringToFront();
-                    bottomBar.bringToFront();
-                }
+                root.addView(customView, matchParent());
+                topBar.bringToFront();
             }
             @Override
             public void onHideCustomView() {
                 if (customView == null) return;
-                if (root != null) root.removeView(customView);
+                root.removeView(customView);
                 customView = null;
                 if (customViewCallback != null) {
                     customViewCallback.onCustomViewHidden();
@@ -177,186 +134,78 @@ public class NativePlayerActivity extends AppCompatActivity {
         });
     }
 
-    // ── Controls UI builder ────────────────────────────────────────────────
+    // ── Top bar UI ─────────────────────────────────────────────────────────
 
-    private void buildControls(String title, FrameLayout root) {
-        // ── Top bar ────────────────────────────────────────────────────────
-        topBar = new LinearLayout(this);
-        ((LinearLayout) topBar).setOrientation(LinearLayout.HORIZONTAL);
-        topBar.setBackgroundColor(Color.argb(180, 0, 0, 0));
-        ((LinearLayout) topBar).setGravity(Gravity.CENTER_VERTICAL);
-        topBar.setPadding(dp(20), dp(14), dp(20), dp(14));
+    private View buildTopBar(String title) {
+        // Gradient: dark → transparent (cinematic look)
+        GradientDrawable grad = new GradientDrawable(
+            GradientDrawable.Orientation.TOP_BOTTOM,
+            new int[]{Color.argb(210, 0, 0, 0), Color.TRANSPARENT}
+        );
 
+        LinearLayout bar = new LinearLayout(this);
+        bar.setOrientation(LinearLayout.HORIZONTAL);
+        bar.setBackground(grad);
+        bar.setGravity(Gravity.CENTER_VERTICAL);
+        bar.setPadding(dp(20), dp(20), dp(28), dp(36));
+
+        // Back button pill
         TextView back = new TextView(this);
-        back.setText("← Back");
-        back.setTextColor(Color.parseColor("#00c896"));
-        back.setTextSize(17);
+        back.setText("‹  Back");
+        back.setTextColor(Color.WHITE);
+        back.setTextSize(16);
         back.setTypeface(Typeface.DEFAULT_BOLD);
+        back.setLetterSpacing(0.04f);
         back.setFocusable(true);
-        back.setPadding(dp(16), dp(8), dp(16), dp(8));
+        back.setPadding(dp(18), dp(10), dp(18), dp(10));
+        back.setBackground(makePillBackground(Color.argb(120, 255, 255, 255)));
         back.setOnClickListener(v -> finish());
-        back.setOnFocusChangeListener((v, f) ->
-            v.setBackgroundColor(f ? Color.parseColor("#333333") : Color.TRANSPARENT));
-        ((LinearLayout) topBar).addView(back);
+        back.setOnFocusChangeListener((v, hasFocus) ->
+            v.setBackground(makePillBackground(
+                hasFocus ? Color.argb(200, 0, 200, 150)
+                         : Color.argb(120, 255, 255, 255))));
+        bar.addView(back);
 
+        // Spacer
         View spacer = new View(this);
-        ((LinearLayout) topBar).addView(spacer,
-            new LinearLayout.LayoutParams(0, 1, 1f));
+        bar.addView(spacer, new LinearLayout.LayoutParams(0, 1, 1f));
 
+        // Title
         if (title != null && !title.isEmpty()) {
-            titleView = new TextView(this);
-            titleView.setText(title);
-            titleView.setTextColor(Color.WHITE);
-            titleView.setTextSize(17);
-            titleView.setTypeface(Typeface.DEFAULT_BOLD);
-            titleView.setMaxLines(1);
-            ((LinearLayout) topBar).addView(titleView);
+            TextView tv = new TextView(this);
+            tv.setText(title);
+            tv.setTextColor(Color.WHITE);
+            tv.setTextSize(17);
+            tv.setTypeface(Typeface.DEFAULT_BOLD);
+            tv.setLetterSpacing(0.02f);
+            tv.setMaxLines(1);
+            tv.setShadowLayer(8f, 0, 2f, Color.argb(180, 0, 0, 0));
+            bar.addView(tv);
         }
 
-        FrameLayout.LayoutParams topParams = new FrameLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT);
-        topParams.gravity = Gravity.TOP;
-        root.addView(topBar, topParams);
-
-        // ── Bottom bar ─────────────────────────────────────────────────────
-        bottomBar = new LinearLayout(this);
-        ((LinearLayout) bottomBar).setOrientation(LinearLayout.VERTICAL);
-        bottomBar.setBackgroundColor(Color.argb(180, 0, 0, 0));
-        bottomBar.setPadding(dp(20), dp(12), dp(20), dp(14));
-
-        // Row 1: play/pause + time
-        LinearLayout row1 = new LinearLayout(this);
-        row1.setOrientation(LinearLayout.HORIZONTAL);
-        row1.setGravity(Gravity.CENTER_VERTICAL);
-
-        playPauseBtn = new ImageButton(this);
-        playPauseBtn.setBackgroundColor(Color.TRANSPARENT);
-        playPauseBtn.setImageResource(android.R.drawable.ic_media_play);
-        playPauseBtn.setColorFilter(Color.WHITE);
-        playPauseBtn.setFocusable(true);
-        playPauseBtn.setOnClickListener(v -> sendVideoCommand("VideoCmd.toggle()"));
-        playPauseBtn.setOnFocusChangeListener((v, f) ->
-            v.setBackgroundColor(f ? Color.parseColor("#333333") : Color.TRANSPARENT));
-        row1.addView(playPauseBtn, new LinearLayout.LayoutParams(dp(44), dp(44)));
-
-        View row1Spacer = new View(this);
-        row1.addView(row1Spacer, new LinearLayout.LayoutParams(0, 1, 1f));
-
-        timeView = new TextView(this);
-        timeView.setText("0:00 / 0:00");
-        timeView.setTextColor(Color.WHITE);
-        timeView.setTextSize(13);
-        row1.addView(timeView);
-
-        ((LinearLayout) bottomBar).addView(row1,
-            new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT));
-
-        // Row 2: seek bar
-        seekBar = new SeekBar(this);
-        seekBar.setMax(1000);
-        seekBar.setEnabled(false);
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override public void onStartTrackingTouch(SeekBar sb) {
-                seekBarTracking = true;
-                cancelHide();
-            }
-            @Override public void onStopTrackingTouch(SeekBar sb) {
-                seekBarTracking = false;
-                if (duration > 0) {
-                    double t = (sb.getProgress() / 1000.0) * duration;
-                    sendVideoCommand("VideoCmd.seek(" + t + ")");
-                }
-                scheduleHide();
-            }
-            @Override public void onProgressChanged(SeekBar sb, int p, boolean fromUser) {}
-        });
-        LinearLayout.LayoutParams sbParams = new LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT);
-        sbParams.topMargin = dp(4);
-        ((LinearLayout) bottomBar).addView(seekBar, sbParams);
-
-        FrameLayout.LayoutParams botParams = new FrameLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT);
-        botParams.gravity = Gravity.BOTTOM;
-        root.addView(bottomBar, botParams);
+        return bar;
     }
 
-    // ── JS bridge (called from WebView thread) ─────────────────────────────
-
-    private class VideoBridge {
-        @JavascriptInterface
-        public void onVideoReady(double dur) {
-            handler.post(() -> {
-                duration  = dur;
-                videoReady = true;
-                seekBar.setEnabled(true);
-                updateTimeDisplay();
-            });
-        }
-        @JavascriptInterface
-        public void onPlayState(boolean playing) {
-            handler.post(() -> {
-                isPlaying = playing;
-                playPauseBtn.setImageResource(
-                    playing
-                        ? android.R.drawable.ic_media_pause
-                        : android.R.drawable.ic_media_play);
-            });
-        }
-        @JavascriptInterface
-        public void onTimeUpdate(double current, double dur) {
-            handler.post(() -> {
-                currentTime = current;
-                if (dur > 0) duration = dur;
-                if (!seekBarTracking && duration > 0) {
-                    seekBar.setProgress((int) ((current / duration) * 1000));
-                }
-                updateTimeDisplay();
-            });
-        }
+    private GradientDrawable makePillBackground(int color) {
+        GradientDrawable d = new GradientDrawable();
+        d.setShape(GradientDrawable.RECTANGLE);
+        d.setCornerRadius(dp(24));
+        d.setColor(color);
+        return d;
     }
 
-    // ── Helpers ────────────────────────────────────────────────────────────
+    // ── Show / hide top bar ────────────────────────────────────────────────
 
-    private void sendVideoCommand(String js) {
-        if (webView != null) webView.evaluateJavascript(js, null);
-        scheduleHide();
-    }
-
-    private void updateTimeDisplay() {
-        timeView.setText(formatTime(currentTime) + " / " + formatTime(duration));
-    }
-
-    private String formatTime(double secs) {
-        int s = (int) secs;
-        int m = s / 60; s %= 60;
-        int h = m / 60; m %= 60;
-        if (h > 0) return String.format("%d:%02d:%02d", h, m, s);
-        return String.format("%d:%02d", m, s);
-    }
-
-    private void toggleControls() {
-        if (topBar.getVisibility() == View.VISIBLE) {
-            hideControls();
-        } else {
-            showControls();
-        }
-    }
-
-    private void showControls() {
+    private void showBar() {
+        cancelHide();
         topBar.setVisibility(View.VISIBLE);
-        bottomBar.setVisibility(View.VISIBLE);
+        topBar.animate().alpha(1f).setDuration(200).start();
         scheduleHide();
     }
 
-    private void hideControls() {
-        topBar.setVisibility(View.GONE);
-        bottomBar.setVisibility(View.GONE);
+    private void fadeOutBar() {
+        topBar.animate().alpha(0f).setDuration(400).withEndAction(() ->
+            topBar.setVisibility(View.GONE)).start();
     }
 
     private void scheduleHide() {
@@ -366,6 +215,7 @@ public class NativePlayerActivity extends AppCompatActivity {
 
     private void cancelHide() {
         hideHandler.removeCallbacks(hideRunnable);
+        topBar.animate().cancel();
     }
 
     // ── Key handling ───────────────────────────────────────────────────────
@@ -373,22 +223,16 @@ public class NativePlayerActivity extends AppCompatActivity {
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
-            switch (event.getKeyCode()) {
-                case KeyEvent.KEYCODE_BACK:
-                    if (topBar.getVisibility() == View.VISIBLE) {
-                        hideControls();
-                    } else {
-                        finish();
-                    }
-                    return true;
-                case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE:
-                case KeyEvent.KEYCODE_SPACE:
-                    sendVideoCommand("VideoCmd.toggle()");
-                    showControls();
-                    return true;
-                default:
-                    showControls();
+            if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+                if (topBar.getVisibility() == View.VISIBLE && topBar.getAlpha() > 0.1f) {
+                    fadeOutBar();
+                    cancelHide();
+                } else {
+                    finish();
+                }
+                return true;
             }
+            showBar();
         }
         return super.dispatchKeyEvent(event);
     }
@@ -416,28 +260,24 @@ public class NativePlayerActivity extends AppCompatActivity {
 
     // ── Lifecycle ──────────────────────────────────────────────────────────
 
-    @Override
-    protected void onResume() {
+    @Override protected void onResume() {
         super.onResume();
         if (webView != null) { webView.onResume(); webView.resumeTimers(); }
         hideSystemUI();
     }
 
-    @Override
-    protected void onPause() {
+    @Override protected void onPause() {
         super.onPause();
         if (webView != null) { webView.onPause(); webView.pauseTimers(); }
     }
 
-    @Override
-    protected void onDestroy() {
+    @Override protected void onDestroy() {
         cancelHide();
-        handler.removeCallbacksAndMessages(null);
         if (webView != null) { webView.destroy(); webView = null; }
         super.onDestroy();
     }
 
-    // ── Layout helpers ─────────────────────────────────────────────────────
+    // ── Helpers ────────────────────────────────────────────────────────────
 
     private FrameLayout.LayoutParams matchParent() {
         return new FrameLayout.LayoutParams(
