@@ -2,8 +2,13 @@
 	"appId": "com.streamking.app",
 	"appName": "StreamKing",
 	"webDir": "dist",
-	"android": {
-		"allowMixedContent": true
+	"server": {
+		"androidScheme": "https",
+		"cleartext": true
 	},
-	"server": {}
+	"android": {
+		"allowMixedContent": true,
+		"captureInput": true,
+		"webContentsDebuggingEnabled": false
+	}
 }

@@ -2,3 +2,15 @@ node_modules
 dist
 .env
 .env.local
+
+# Android signing — NEVER commit these
+android/keystore.properties
+android/keystore.jks
+android/*.jks
+android/*.keystore
+
+# Android build artifacts
+android/.gradle
+android/app/build
+android/build
+android/local.properties
