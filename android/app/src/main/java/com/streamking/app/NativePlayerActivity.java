@@ -393,16 +393,6 @@ public class NativePlayerActivity extends AppCompatActivity {
                     sendVideoCommand("VideoCmd.toggle()");
                     showControls();
                     return true;
-                case KeyEvent.KEYCODE_MEDIA_FAST_FORWARD:
-                case KeyEvent.KEYCODE_DPAD_RIGHT:
-                    sendVideoCommand("VideoCmd.seek(" + (currentTime + 10) + ")");
-                    showControls();
-                    return true;
-                case KeyEvent.KEYCODE_MEDIA_REWIND:
-                case KeyEvent.KEYCODE_DPAD_LEFT:
-                    sendVideoCommand("VideoCmd.seek(" + Math.max(0, currentTime - 10) + ")");
-                    showControls();
-                    return true;
                 default:
                     showControls();
             }
