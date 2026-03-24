@@ -47,6 +47,10 @@
             android:hardwareAccelerated="true"
             android:theme="@style/AppTheme.NoActionBar" />
 
+        <meta-data
+            android:name="BITMOVIN_PLAYER_LICENSE_KEY"
+            android:value="93a2cfaf-9e1c-47b9-8463-3a70fb7acfd1" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
