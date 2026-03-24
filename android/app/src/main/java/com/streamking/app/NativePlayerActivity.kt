@@ -141,7 +141,7 @@ class NativePlayerActivity : Activity() {
 
         val networkConfig = NetworkConfig(
             preprocessHttpRequestCallback = { _, request ->
-                val headers = request.headers.toMutableMap()
+                val headers = request.headers?.toMutableMap() ?: mutableMapOf()
                 headers["Referer"] = "https://www.vidking.net/"
                 headers["Origin"]  = "https://www.vidking.net"
                 // Merge cookies: vidking session cookies + any CDN cookies
