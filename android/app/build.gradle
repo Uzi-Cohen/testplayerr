@@ -35,6 +35,14 @@ android {
         }
     }
 
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
+    }
+    kotlinOptions {
+        jvmTarget = "21"
+    }
+
     buildTypes {
         release {
             signingConfig keystorePropertiesFile.exists() ? signingConfigs.release : signingConfigs.debug
@@ -63,7 +71,7 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
-    implementation "com.bitmovin.player:player:3.+"
+    implementation "com.bitmovin.player:player:3.146.0"
 }
 
 apply from: 'capacitor.build.gradle'
