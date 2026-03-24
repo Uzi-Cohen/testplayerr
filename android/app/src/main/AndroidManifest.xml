@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!--
-        Android TV: declare Leanback support (required=false → runs on both phone and TV).
-        Touch is declared not-required so Android TV (no touchscreen) accepts the app.
-    -->
     <uses-feature android:name="android.software.leanback" android:required="false" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
 
@@ -18,28 +14,28 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
 
+        <!-- Main Compose activity -->
         <activity
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
             android:name=".MainActivity"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
             android:label="@string/title_activity_main"
-            android:theme="@style/AppTheme.NoActionBarLaunch"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="adjustResize"
             android:launchMode="singleTask"
             android:exported="true">
 
-            <!-- Phone / tablet launcher -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Android TV / Leanback launcher -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
-
         </activity>
 
+        <!-- Native Bitmovin player activity (unchanged) -->
         <activity
             android:name=".NativePlayerActivity"
             android:exported="false"
@@ -58,11 +54,10 @@
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths"></meta-data>
+                android:resource="@xml/file_paths" />
         </provider>
     </application>
 
-    <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 </manifest>

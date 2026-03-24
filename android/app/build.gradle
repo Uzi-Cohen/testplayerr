@@ -1,5 +1,13 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
+apply plugin: 'org.jetbrains.kotlin.plugin.compose'
+
+// TMDB token from local.properties
+def localProps = new Properties()
+def localPropsFile = rootProject.file('local.properties')
+if (localPropsFile.exists()) {
+    localProps.load(new FileInputStream(localPropsFile))
+}
 
 // Load signing credentials from keystore.properties (git-ignored)
 def keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -21,9 +29,9 @@ android {
         aaptOptions {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
+        buildConfigField "String", "TMDB_TOKEN", "\"${localProps.getProperty('TMDB_TOKEN', '')}\""
     }
 
-    // Release signing — reads from android/keystore.properties
     signingConfigs {
         release {
             if (keystorePropertiesFile.exists()) {
@@ -43,6 +51,11 @@ android {
         jvmTarget = "21"
     }
 
+    buildFeatures {
+        compose true
+        buildConfig true
+    }
+
     buildTypes {
         release {
             signingConfig keystorePropertiesFile.exists() ? signingConfigs.release : signingConfigs.debug
@@ -56,22 +69,63 @@ android {
 }
 
 repositories {
-    flatDir{
+    flatDir {
         dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
     }
 }
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+
+    // AndroidX core
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
-    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-ktx:$androidxCoreVersion"
+    implementation "androidx.activity:activity-compose:1.10.1"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+
+    // Jetpack Compose BOM
+    implementation platform('androidx.compose:compose-bom:2025.04.00')
+    implementation 'androidx.compose.ui:ui'
+    implementation 'androidx.compose.ui:ui-tooling-preview'
+    implementation 'androidx.compose.material3:material3'
+    implementation 'androidx.compose.material:material-icons-extended'
+    implementation 'androidx.compose.foundation:foundation'
+    debugImplementation 'androidx.compose.ui:ui-tooling'
+
+    // Navigation
+    implementation 'androidx.navigation:navigation-compose:2.8.9'
+
+    // ViewModel + Lifecycle
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.9.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.9.0'
+
+    // Coroutines
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2'
+
+    // Retrofit + OkHttp + Gson
+    implementation 'com.squareup.retrofit2:retrofit:2.11.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.11.0'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
+
+    // Coil image loading
+    implementation 'io.coil-kt:coil-compose:2.7.0'
+
+    // DataStore (preferences)
+    implementation 'androidx.datastore:datastore-preferences:1.1.4'
+
+    // Bitmovin player
+    implementation "com.bitmovin.player:player:3.146.0"
+
+    // Capacitor (kept for NativePlayerActivity launcher infra)
     implementation project(':capacitor-android')
+    implementation project(':capacitor-cordova-android-plugins')
+
+    // Tests
     testImplementation "junit:junit:$junitVersion"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
-    implementation project(':capacitor-cordova-android-plugins')
-    implementation "com.bitmovin.player:player:3.146.0"
 }
 
 apply from: 'capacitor.build.gradle'
@@ -82,5 +136,5 @@ try {
         apply plugin: 'com.google.gms.google-services'
     }
 } catch(Exception e) {
-    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+    logger.info("google-services.json not found, google-services plugin not applied.")
 }
