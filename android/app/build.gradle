@@ -54,11 +54,7 @@ android {
     }
     kotlinOptions {
         jvmTarget = "21"
-    }
-    // Enforce JVM 21 for both Java and Kotlin to prevent
-    // "Inconsistent JVM-target" errors when JDK 24 is installed.
-    kotlin {
-        jvmToolchain(21)
+        freeCompilerArgs += ["-Xskip-metadata-version-check"]
     }
 
     buildFeatures {
