@@ -20,15 +20,19 @@ import android.webkit.WebViewClient
 import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.webkit.CookieManager
 import com.bitmovin.analytics.api.AnalyticsConfig
 import com.bitmovin.analytics.api.SourceMetadata
 import com.bitmovin.player.PlayerView
 import com.bitmovin.player.api.Player
+import com.bitmovin.player.api.PlayerConfig
 import com.bitmovin.player.api.analytics.AnalyticsPlayerConfig
 import com.bitmovin.player.api.analytics.AnalyticsSourceConfig
+import com.bitmovin.player.api.network.NetworkConfig
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.api.source.SourceType
+import java.util.concurrent.CompletableFuture
 
 class NativePlayerActivity : Activity() {
 
@@ -123,12 +127,36 @@ class NativePlayerActivity : Activity() {
     private fun launchBitmovin(streamUrl: String, title: String) {
         loadingOverlay.visibility = View.GONE
         webViewContainer.visibility = View.GONE
+
+        // Grab cookies the WebView collected for the embed domain before destroying it
+        val embedHost = try {
+            android.net.Uri.parse(streamUrl).let { "https://${it.host}/" }
+        } catch (e: Exception) { "" }
+        val vidkingCookies = CookieManager.getInstance().getCookie("https://www.vidking.net/")
+        val cdnCookies     = if (embedHost.isNotEmpty()) CookieManager.getInstance().getCookie(embedHost) else null
+
         destroyExtractor()
 
         playerView.visibility = View.VISIBLE
 
+        val networkConfig = NetworkConfig(
+            preprocessHttpRequestCallback = { _, request ->
+                val headers = request.headers.toMutableMap()
+                headers["Referer"] = "https://www.vidking.net/"
+                headers["Origin"]  = "https://www.vidking.net"
+                // Merge cookies: vidking session cookies + any CDN cookies
+                val allCookies = listOfNotNull(vidkingCookies, cdnCookies)
+                    .filter { it.isNotBlank() }
+                    .joinToString("; ")
+                if (allCookies.isNotEmpty()) headers["Cookie"] = allCookies
+                request.headers = headers
+                CompletableFuture.completedFuture(request)
+            }
+        )
+
         val player = Player(
             context = this,
+            playerConfig = PlayerConfig(networkConfig = networkConfig),
             analyticsConfig = AnalyticsPlayerConfig.Enabled(
                 AnalyticsConfig(licenseKey = analyticsLicenseKey)
             ),
