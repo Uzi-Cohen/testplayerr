@@ -1,6 +1,11 @@
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply plugin: 'org.jetbrains.kotlin.plugin.compose'
+// Use the plugins {} block so Gradle resolves them via pluginManagement
+// (settings.gradle), not the legacy buildscript classpath — avoids
+// "Plugin not found" errors with org.jetbrains.kotlin.plugin.compose.
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.plugin.compose'
+}
 
 // TMDB token from local.properties
 def localProps = new Properties()
@@ -49,6 +54,11 @@ android {
     }
     kotlinOptions {
         jvmTarget = "21"
+    }
+    // Enforce JVM 21 for both Java and Kotlin to prevent
+    // "Inconsistent JVM-target" errors when JDK 24 is installed.
+    kotlin {
+        jvmToolchain(21)
     }
 
     buildFeatures {
