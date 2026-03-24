@@ -32,6 +32,8 @@ import com.bitmovin.player.api.network.NetworkConfig
 import com.bitmovin.player.api.source.Source
 import com.bitmovin.player.api.source.SourceConfig
 import com.bitmovin.player.api.source.SourceType
+import com.bitmovin.player.api.ui.PlayerViewConfig
+import com.bitmovin.player.api.ui.UiConfig
 import java.util.concurrent.CompletableFuture
 
 class NativePlayerActivity : Activity() {
@@ -67,7 +69,13 @@ class NativePlayerActivity : Activity() {
         root.addView(webViewContainer, matchParent())
 
         // Layer 2 – Bitmovin PlayerView (hidden until stream URL found)
-        playerView = PlayerView(this)
+        val playerViewConfig = PlayerViewConfig(
+            uiConfig = UiConfig.WebUi(
+                cssLocation = "file:///android_asset/bitmovin-tv.css",
+                forceUseWebUiOnTv = true,
+            )
+        )
+        playerView = PlayerView(this, playerViewConfig)
         playerView.visibility = View.GONE
         root.addView(playerView, matchParent())
 

@@ -3,30 +3,33 @@
 @tailwind utilities;
 
 /* ═══════════════════════════════════════════════════════════════
-   StreamKing — TV-first design system
+   StreamKing — TV-first design system  (Netflix-style edition)
    Accent palette: teal/cyan  (#00c896 primary, #00f0b8 bright)
-   Background: near-black  (#0c0c12)
+   Background: near-black  (#0c0c0f)
    ═══════════════════════════════════════════════════════════════ */
 
 :root {
   --accent:        #00c896;
   --accent-bright: #00f0b8;
   --accent-dark:   #008f69;
-  --accent-glow:   rgba(0, 200, 150, 0.45);
+  --accent-glow:   rgba(0, 200, 150, 0.5);
   --accent-dim:    rgba(0, 200, 150, 0.15);
 
-  --bg:       #0c0c12;
-  --surface:  #141420;
-  --card:     #1a1a28;
+  --bg:       #0c0c0f;
+  --surface:  #141418;
+  --card:     #1c1c22;
   --border:   rgba(255,255,255,0.07);
-  --border-hi: rgba(255,255,255,0.15);
+  --border-hi: rgba(255,255,255,0.16);
 
-  --text:     #e8e8f0;
-  --text-dim: #6a6a88;
-  --text-mid: #9898b8;
+  --text:     #f0f0f8;
+  --text-dim: #686882;
+  --text-mid: #9898b0;
 
   --red:      #e8473a;
   --purple:   #a855f7;
+
+  /* TV scale — bumps up everything for 10-foot viewing */
+  --tv-scale: 1;
 }
 
 @layer base {
@@ -57,18 +60,6 @@
   ::-webkit-scrollbar-track        { background: #0a0a10; }
   ::-webkit-scrollbar-thumb        { background: var(--accent-dark); border-radius: 2px; }
 
-  /* Subtle scanlines overlay */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: 9998;
-    pointer-events: none;
-    background: repeating-linear-gradient(
-      0deg, transparent, transparent 3px,
-      rgba(0,0,0,0.04) 3px, rgba(0,0,0,0.04) 4px
-    );
-  }
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -87,12 +78,12 @@
 .tv-btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 24px;
+  gap: 10px;
+  padding: 14px 32px;
   border-radius: 4px;
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 1rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   cursor: pointer;
@@ -165,12 +156,12 @@
   z-index: 50;
   display: flex;
   align-items: center;
-  gap: 24px;
-  padding: 0 24px;
-  height: 56px;
-  background: linear-gradient(180deg, rgba(12,12,18,0.98) 0%, rgba(12,12,18,0.85) 100%);
-  border-bottom: 1px solid rgba(0,200,150,0.2);
-  backdrop-filter: blur(8px);
+  gap: 32px;
+  padding: 0 40px;
+  height: 72px;
+  background: linear-gradient(180deg, rgba(12,12,15,0.98) 0%, rgba(12,12,15,0.7) 100%);
+  border-bottom: 1px solid rgba(0,200,150,0.15);
+  backdrop-filter: blur(12px);
 }
 
 .tv-navbar__logo {
@@ -182,21 +173,21 @@
 }
 
 .tv-navbar__logo-box {
-  width: 34px; height: 34px;
-  border-radius: 5px;
+  width: 40px; height: 40px;
+  border-radius: 6px;
   display: flex; align-items: center; justify-content: center;
   background: linear-gradient(135deg, var(--accent), var(--accent-dark));
-  box-shadow: 0 0 14px var(--accent-glow);
+  box-shadow: 0 0 18px var(--accent-glow);
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 15px;
   color: #0a0a12;
 }
 
 .tv-navbar__logo-text {
   font-family: 'Oswald', sans-serif;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 1.15rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--text);
@@ -209,10 +200,10 @@
 }
 
 .tv-navbar__link {
-  padding: 6px 14px;
+  padding: 9px 20px;
   border-radius: 4px;
   font-family: 'Oswald', sans-serif;
-  font-size: 0.82rem;
+  font-size: 0.95rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-dim);
@@ -237,14 +228,14 @@
    HERO SECTION
    ═══════════════════════════════════════════════════════════════ */
 
-.tv-home    { padding-top: 56px; background: var(--bg); min-height: 100vh; }
+.tv-home    { padding-top: 72px; background: var(--bg); min-height: 100vh; }
 
 .tv-hero {
   position: relative;
   width: 100%;
-  height: 65vh;
-  min-height: 480px;
-  max-height: 680px;
+  height: 80vh;
+  min-height: 560px;
+  max-height: 860px;
   overflow: hidden;
 }
 
@@ -261,9 +252,9 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg,  rgba(12,12,18,0.97) 0%, rgba(12,12,18,0.6) 50%, rgba(12,12,18,0.3) 100%),
-    linear-gradient(0deg,   rgba(12,12,18,1)   0%, rgba(12,12,18,0.3) 50%, transparent 80%),
-    linear-gradient(180deg, rgba(12,12,18,0.5) 0%, transparent 20%);
+    linear-gradient(90deg,  rgba(12,12,15,0.97) 0%, rgba(12,12,15,0.55) 55%, rgba(12,12,15,0.15) 100%),
+    linear-gradient(0deg,   rgba(12,12,15,1)    0%, rgba(12,12,15,0.5)  45%, transparent 75%),
+    linear-gradient(180deg, rgba(12,12,15,0.6)  0%, transparent 25%);
 }
 
 .tv-hero__content {
@@ -271,20 +262,16 @@
   height: 100%;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 40px 48px;
+  padding: 0 56px 64px;
   display: flex;
   align-items: flex-end;
-  gap: 32px;
+  gap: 36px;
 }
 
-.tv-hero__poster {
-  width: 130px;
-  flex-shrink: 0;
-  border-radius: 4px;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.06);
-}
+/* Hide the small poster — let the full backdrop speak */
+.tv-hero__poster { display: none; }
 
-.tv-hero__info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.tv-hero__info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 18px; max-width: 680px; }
 
 .tv-hero__badges { display: flex; gap: 8px; flex-wrap: wrap; }
 
@@ -315,27 +302,28 @@
 
 .tv-hero__title {
   font-family: 'Oswald', sans-serif;
-  font-size: clamp(2rem, 5vw, 4rem);
+  font-size: clamp(2.8rem, 6vw, 5.5rem);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   color: #fff;
-  text-shadow: 0 2px 30px rgba(0,0,0,0.9);
-  line-height: 1;
+  text-shadow: 0 2px 40px rgba(0,0,0,0.95), 0 0 80px rgba(0,0,0,0.6);
+  line-height: 0.95;
 }
 
 .tv-hero__overview {
-  color: var(--text-mid);
-  font-size: 0.88rem;
-  line-height: 1.6;
-  max-width: 600px;
+  color: rgba(240,240,248,0.82);
+  font-size: 1rem;
+  line-height: 1.65;
+  max-width: 580px;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.7);
 }
 
-.tv-hero__actions { display: flex; gap: 12px; flex-wrap: wrap; }
+.tv-hero__actions { display: flex; gap: 16px; flex-wrap: wrap; }
 
 /* ═══════════════════════════════════════════════════════════════
    CONTENT ROWS (Section)
@@ -344,18 +332,24 @@
 .tv-rows {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 32px 24px 48px;
+  padding: 40px 40px 64px;
   display: flex;
   flex-direction: column;
-  gap: 36px;
+  gap: 44px;
 }
 
 .tv-section {
-  transition: opacity 0.2s;
+  transition: opacity 0.25s ease, transform 0.25s ease;
 }
-/* Unfocused rows are dimmed slightly */
+/* Unfocused rows dim and pull back */
 .tv-rows .tv-section:not(.tv-section--active) {
-  opacity: 0.65;
+  opacity: 0.5;
+  transform: scale(0.985);
+  transform-origin: left center;
+}
+.tv-rows .tv-section--active {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .tv-section__header {
@@ -368,14 +362,14 @@
 
 .tv-section__title {
   font-family: 'Oswald', sans-serif;
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--text);
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 .tv-section__title::before {
   content: '';
@@ -407,11 +401,11 @@
 
 .tv-section__card-wrap {
   flex-shrink: 0;
-  width: 148px;
+  width: 172px;
 }
-@media (min-width: 640px)  { .tv-section__card-wrap { width: 168px; } }
-@media (min-width: 1024px) { .tv-section__card-wrap { width: 188px; } }
-@media (min-width: 1280px) { .tv-section__card-wrap { width: 196px; } }
+@media (min-width: 640px)  { .tv-section__card-wrap { width: 196px; } }
+@media (min-width: 1024px) { .tv-section__card-wrap { width: 218px; } }
+@media (min-width: 1280px) { .tv-section__card-wrap { width: 232px; } }
 
 /* ═══════════════════════════════════════════════════════════════
    MOVIE CARD
@@ -440,9 +434,12 @@
 /* ── Active card (focused via D-pad row nav) ── */
 .tv-card--active,
 .tv-card:focus {
-  border-color: var(--accent) !important;
-  box-shadow: 0 0 0 1px var(--accent), 0 0 28px var(--accent-glow), 0 12px 36px rgba(0,0,0,0.85) !important;
-  transform: translateY(-8px) scale(1.08) !important;
+  border-color: #fff !important;
+  box-shadow:
+    0 0 0 3px rgba(255,255,255,0.9),
+    0 0 40px var(--accent-glow),
+    0 20px 60px rgba(0,0,0,0.95) !important;
+  transform: translateY(-12px) scale(1.13) !important;
   z-index: 20;
   position: relative;
   outline: none;
@@ -494,17 +491,25 @@
 }
 
 .tv-card__play {
-  width: 46px;
-  height: 46px;
+  width: 54px;
+  height: 54px;
   border-radius: 50%;
-  background: var(--accent);
+  background: rgba(255,255,255,0.95);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   color: #0a0a12;
-  box-shadow: 0 0 20px var(--accent-glow);
-  padding-left: 3px;
+  box-shadow: 0 0 28px rgba(255,255,255,0.4), 0 4px 16px rgba(0,0,0,0.6);
+  padding-left: 4px;
+  transition: transform 0.15s ease;
+}
+.tv-card--active .tv-card__play,
+.tv-card:focus .tv-card__play {
+  transform: scale(1.12);
+  background: var(--accent);
+  box-shadow: 0 0 28px var(--accent-glow);
+  color: #0a0a12;
 }
 
 /* Progress bar */
@@ -549,7 +554,7 @@
 }
 .tv-card__title {
   font-family: 'Oswald', sans-serif;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -885,11 +890,11 @@
 
 /* Keep ContentGrid's grid layout but use tv-card styles */
 .tv-page {
-  padding-top: 72px;
+  padding-top: 88px;
   max-width: 1400px;
   margin: 0 auto;
-  padding-left: 24px;
-  padding-right: 24px;
+  padding-left: 40px;
+  padding-right: 40px;
   padding-bottom: 48px;
 }
 .tv-page__header {
