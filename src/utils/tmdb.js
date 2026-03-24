@@ -32,15 +32,17 @@ export const tmdb = {
   tvSeason: (id, season) => fetchTMDB(`/tv/${id}/season/${season}`),
   search: (query, page = 1) => fetchTMDB('/search/multi', { query, page }),
   searchQuick: (query) => fetchTMDB('/search/multi', { query, page: 1 }),
-  discoverMovies: (page = 1, genreId = null, sortBy = 'popularity.desc') =>
+  discoverMovies: (page = 1, genreId = null, sortBy = 'popularity.desc', minRating = 0) =>
     fetchTMDB('/discover/movie', {
       page, sort_by: sortBy,
-      ...(genreId ? { with_genres: genreId } : {}),
+      ...(genreId   ? { with_genres: genreId } : {}),
+      ...(minRating ? { 'vote_average.gte': minRating, 'vote_count.gte': 100 } : {}),
     }),
-  discoverTV: (page = 1, genreId = null, sortBy = 'popularity.desc') =>
+  discoverTV: (page = 1, genreId = null, sortBy = 'popularity.desc', minRating = 0) =>
     fetchTMDB('/discover/tv', {
       page, sort_by: sortBy,
-      ...(genreId ? { with_genres: genreId } : {}),
+      ...(genreId   ? { with_genres: genreId } : {}),
+      ...(minRating ? { 'vote_average.gte': minRating, 'vote_count.gte': 50 } : {}),
     }),
   genreMovies: () => fetchTMDB('/genre/movie/list'),
   genreTV: () => fetchTMDB('/genre/tv/list'),

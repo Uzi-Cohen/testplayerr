@@ -70,3 +70,7 @@ export function clearProgress(mediaType, id, season, episode) {
   delete all[key]
   saveAll(all)
 }
+
+export function removeFromHistory(mediaType, id) {
+  saveHistory(loadHistory().filter(h => !(h.id === id && h.mediaType === mediaType)))
+}

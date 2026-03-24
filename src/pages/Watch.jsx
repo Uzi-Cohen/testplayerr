@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { tmdb, backdropUrl, posterUrl, formatDate, formatRuntime } from '../utils/tmdb'
 import { movieUrl, tvUrl } from '../utils/vidking'
-import { getProgress } from '../utils/progress'
+import { getProgress, removeFromHistory } from '../utils/progress'
+import { isInWatchlist, toggleWatchlist } from '../utils/watchlist'
 import Spinner from '../components/Spinner'
 import { registerPlugin } from '@capacitor/core'
 
@@ -28,6 +29,8 @@ export default function Watch() {
   const [seasonData,   setSeasonData]   = useState(null)
   const [totalSeasons, setTotalSeasons] = useState(1)
   const [similar,      setSimilar]      = useState([])
+  const [inList,       setInList]       = useState(false)
+  const [removedMsg,   setRemovedMsg]   = useState(false)
 
   const epScrollRef = useRef(null)
 
@@ -45,6 +48,7 @@ export default function Watch() {
         setDetails(data)
         if (isTv) setTotalSeasons(data.number_of_seasons || 1)
         setLoading(false)
+        setInList(isInWatchlist(pathMediaType, Number(id)))
         const ep = isTv ? `/tv/${id}/similar` : `/movie/${id}/similar`
         fetch(`https://api.themoviedb.org/3${ep}`, {
           headers: { Authorization: `Bearer ${import.meta.env.VITE_TMDB_ACCESS_TOKEN}`, accept: 'application/json' },
@@ -69,6 +73,20 @@ export default function Watch() {
       ? tvUrl(id, s, e, { autoPlay: true, nextEpisode: true, episodeSelector: true, progress: ts })
       : movieUrl(id, { autoPlay: true, progress: ts })
     openPlayer(url)
+  }
+
+  // ── watchlist toggle ───────────────────────────────────────────────────────
+  function handleWatchlist() {
+    if (!details) return
+    const added = toggleWatchlist({ ...details, id: Number(id), media_type: pathMediaType })
+    setInList(added)
+  }
+
+  // ── remove from continue watching ─────────────────────────────────────────
+  function handleMarkWatched() {
+    removeFromHistory(pathMediaType, Number(id))
+    setRemovedMsg(true)
+    setTimeout(() => setRemovedMsg(false), 2000)
   }
 
   // ── scroll focused episode into view ──────────────────────────────────────
@@ -167,15 +185,31 @@ export default function Watch() {
 
             {details?.overview && <p className="detail-overview">{details.overview}</p>}
 
-            {/* Movie: single play button */}
-            {!isTv && (
+            {/* Action buttons row */}
+            <div className="detail-actions">
+              {/* Movie: single play button */}
+              {!isTv && (
+                <button
+                  className={`detail-play-btn ${zone === 'play' ? 'detail-play-btn--focused' : ''}`}
+                  onClick={() => play()}
+                >
+                  ▶ Play
+                </button>
+              )}
+
+              {/* Watchlist toggle */}
               <button
-                className={`detail-play-btn ${zone === 'play' ? 'detail-play-btn--focused' : ''}`}
-                onClick={() => play()}
+                className={`detail-watchlist-btn ${inList ? 'detail-watchlist-btn--active' : ''}`}
+                onClick={handleWatchlist}
               >
-                ▶ Play
+                {inList ? '♥ In My List' : '♡ My List'}
               </button>
-            )}
+
+              {/* Mark as watched (remove from continue watching) */}
+              <button className="detail-watched-btn" onClick={handleMarkWatched}>
+                {removedMsg ? '✓ Removed' : '✓ Mark Watched'}
+              </button>
+            </div>
 
             {/* TV: season + episode picker */}
             {isTv && (

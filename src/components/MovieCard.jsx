@@ -1,17 +1,28 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { posterUrl, formatDate } from '../utils/tmdb'
 import { getProgress } from '../utils/progress'
+import { isInWatchlist, toggleWatchlist } from '../utils/watchlist'
 
 /**
  * MovieCard — supports both spatial-nav (data-tv-focus) and row-based nav (isActive prop).
  */
 export default function MovieCard({ item, isActive = false }) {
-  const mediaType    = item.media_type || (item.first_air_date !== undefined ? 'tv' : 'movie')
-  const title        = item.title || item.name
-  const date         = item.release_date || item.first_air_date
-  const poster       = posterUrl(item.poster_path, 'w342')
-  const progress     = getProgress(mediaType, item.id)
-  const progressPct  = (progress?.progress || 0) * 100
+  const mediaType   = item.media_type || (item.first_air_date !== undefined ? 'tv' : 'movie')
+  const title       = item.title || item.name
+  const date        = item.release_date || item.first_air_date
+  const poster      = posterUrl(item.poster_path, 'w342')
+  const progress    = getProgress(mediaType, item.id)
+  const progressPct = (progress?.progress || 0) * 100
+
+  const [inList, setInList] = useState(() => isInWatchlist(mediaType, item.id))
+
+  function handleWatchlist(e) {
+    e.preventDefault()
+    e.stopPropagation()
+    const added = toggleWatchlist({ ...item, media_type: mediaType })
+    setInList(added)
+  }
 
   return (
     <Link
@@ -32,6 +43,15 @@ export default function MovieCard({ item, isActive = false }) {
         <div className={`tv-card__overlay ${isActive ? 'tv-card__overlay--visible' : ''}`}>
           <div className="tv-card__play">▶</div>
         </div>
+
+        {/* Watchlist heart */}
+        <button
+          className={`tv-card__heart ${inList ? 'tv-card__heart--active' : ''}`}
+          onClick={handleWatchlist}
+          title={inList ? 'Remove from My List' : 'Add to My List'}
+        >
+          {inList ? '♥' : '♡'}
+        </button>
 
         {/* Watch progress */}
         {progressPct > 0 && (

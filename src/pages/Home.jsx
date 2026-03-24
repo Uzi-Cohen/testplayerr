@@ -1,9 +1,10 @@
-import { useMemo } from 'react'
+import { useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTMDB } from '../hooks/useTMDB'
 import { useTVNav } from '../hooks/useTVNav'
 import { tmdb } from '../utils/tmdb'
 import { getWatchHistory } from '../utils/progress'
+import { getWatchlist } from '../utils/watchlist'
 import Navbar, { NAV_ITEMS } from '../components/Navbar'
 import Section from '../components/Section'
 import Spinner from '../components/Spinner'
@@ -30,31 +31,49 @@ export default function Home() {
   const { data: topRatedTV }     = useTMDB(() => tmdb.topRatedTV(), [])
   const { data: airingTV }       = useTMDB(() => tmdb.airingTV(), [])
 
-  const history = getWatchHistory()
+  const history  = getWatchHistory()
+  const watchlist = getWatchlist()
   const hero = trending?.results?.[0]
+
+  // ── Surprise Me: pick a random item from trending ──
+  const handleSurpriseMe = useCallback(() => {
+    const pool = trending?.results
+    if (!pool?.length) return
+    const item = pool[Math.floor(Math.random() * pool.length)]
+    const mt   = item.media_type || 'movie'
+    navigate(`/watch/${mt}/${item.id}`)
+  }, [trending, navigate])
+
+  // ── Mood rows derived from genre fetches ──
+  const darkAndIntense = useMemo(() => {
+    const h = tag(horrorMovies, 'movie')
+    const t = tag(thrillerMovies, 'movie')
+    const combined = [...h, ...t].filter((v, i, a) => a.findIndex(x => x.id === v.id) === i)
+    return combined.slice(0, 20)
+  }, [horrorMovies, thrillerMovies])
 
   // ── Build the ordered row definitions ──
   const rowDefs = useMemo(() => {
     const defs = []
-    if (history.length > 0)      defs.push({ id: 'continue',   title: 'Continue Watching',       items: history.map(h => ({ ...h, media_type: h.mediaType })) })
-    if (trending?.results)       defs.push({ id: 'trending',   title: 'Trending This Week',      items: trending.results.slice(1, 21) })
-    if (nowPlaying?.results)     defs.push({ id: 'now',        title: 'Now Playing in Theaters', items: tag(nowPlaying, 'movie'),  viewAllLink: '/movies' })
-    if (topRated?.results)       defs.push({ id: 'top-movies', title: 'Top Rated Movies',        items: tag(topRated, 'movie'),    viewAllLink: '/movies' })
-    if (popularMovies?.results)  defs.push({ id: 'pop-movies', title: 'Popular Movies',          items: tag(popularMovies, 'movie'), viewAllLink: '/movies' })
-    if (actionMovies?.results)   defs.push({ id: 'action',     title: 'Action & Adventure',      items: tag(actionMovies, 'movie') })
-    if (comedyMovies?.results)   defs.push({ id: 'comedy',     title: 'Comedy',                  items: tag(comedyMovies, 'movie') })
-    if (scifiMovies?.results)    defs.push({ id: 'scifi',      title: 'Sci-Fi',                  items: tag(scifiMovies, 'movie') })
-    if (horrorMovies?.results)   defs.push({ id: 'horror',     title: 'Horror',                  items: tag(horrorMovies, 'movie') })
-    if (thrillerMovies?.results) defs.push({ id: 'thriller',   title: 'Thriller',                items: tag(thrillerMovies, 'movie') })
-    if (popularTV?.results)      defs.push({ id: 'pop-tv',     title: 'Popular TV Shows',        items: tag(popularTV, 'tv'),      viewAllLink: '/tv' })
-    if (airingTV?.results)       defs.push({ id: 'airing',     title: 'Airing Now',              items: tag(airingTV, 'tv'),       viewAllLink: '/tv' })
-    if (topRatedTV?.results)     defs.push({ id: 'top-tv',     title: 'Top Rated Series',        items: tag(topRatedTV, 'tv'),     viewAllLink: '/tv' })
-    if (dramaTV?.results)        defs.push({ id: 'drama-tv',   title: 'Drama Series',            items: tag(dramaTV, 'tv') })
-    if (scifiTV?.results)        defs.push({ id: 'scifi-tv',   title: 'Sci-Fi & Fantasy Series', items: tag(scifiTV, 'tv') })
+    if (watchlist.length > 0)    defs.push({ id: 'mylist',    title: '♥ My List',                 items: watchlist.map(h => ({ ...h, media_type: h.mediaType })), viewAllLink: '/watchlist' })
+    if (history.length > 0)      defs.push({ id: 'continue',  title: 'Continue Watching',          items: history.map(h => ({ ...h, media_type: h.mediaType })) })
+    if (trending?.results)       defs.push({ id: 'trending',  title: 'Trending This Week',         items: trending.results.slice(1, 21) })
+    if (nowPlaying?.results)     defs.push({ id: 'now',       title: 'Now Playing in Theaters',    items: tag(nowPlaying, 'movie'),     viewAllLink: '/movies' })
+    if (topRated?.results)       defs.push({ id: 'top-movies',title: 'Top Rated Movies',           items: tag(topRated, 'movie'),       viewAllLink: '/movies' })
+    if (popularMovies?.results)  defs.push({ id: 'pop-movies',title: 'Popular Movies',             items: tag(popularMovies, 'movie'),  viewAllLink: '/movies' })
+    if (actionMovies?.results)   defs.push({ id: 'action',    title: '⚡ Action & Adventure',      items: tag(actionMovies, 'movie') })
+    if (comedyMovies?.results)   defs.push({ id: 'easy',      title: '😄 Easy Watch — Comedy',    items: tag(comedyMovies, 'movie') })
+    if (scifiMovies?.results)    defs.push({ id: 'scifi',     title: '🚀 Sci-Fi',                 items: tag(scifiMovies, 'movie') })
+    if (darkAndIntense.length)   defs.push({ id: 'dark',      title: '🔥 Dark & Intense',         items: darkAndIntense })
+    if (popularTV?.results)      defs.push({ id: 'pop-tv',    title: 'Popular TV Shows',           items: tag(popularTV, 'tv'),         viewAllLink: '/tv' })
+    if (airingTV?.results)       defs.push({ id: 'airing',    title: 'Airing Now',                 items: tag(airingTV, 'tv'),          viewAllLink: '/tv' })
+    if (topRatedTV?.results)     defs.push({ id: 'top-tv',    title: 'Top Rated Series',           items: tag(topRatedTV, 'tv'),        viewAllLink: '/tv' })
+    if (dramaTV?.results)        defs.push({ id: 'drama-tv',  title: 'Drama Series',               items: tag(dramaTV, 'tv') })
+    if (scifiTV?.results)        defs.push({ id: 'scifi-tv',  title: 'Sci-Fi & Fantasy Series',   items: tag(scifiTV, 'tv') })
     return defs
   }, [trending, popularMovies, popularTV, nowPlaying, topRated, actionMovies,
       comedyMovies, horrorMovies, scifiMovies, thrillerMovies, dramaTV, scifiTV,
-      topRatedTV, airingTV, history])
+      topRatedTV, airingTV, history, watchlist, darkAndIntense])
 
   // ── Row-based D-pad navigation ──
   const rowArrays = useMemo(() => rowDefs.map(r => r.items), [rowDefs])
@@ -98,7 +117,7 @@ export default function Home() {
   return (
     <div className="tv-home">
       {/* ── Navbar ── */}
-      <Navbar navFocused={isNavActive} navCol={activeCol} />
+      <Navbar navFocused={isNavActive} navCol={activeCol} onSurpriseMe={handleSurpriseMe} />
 
       {/* ── Hero ── */}
       {hero && (
@@ -122,6 +141,9 @@ export default function Home() {
                 </button>
                 <button className="tv-btn tv-btn--secondary" onClick={() => navigate(`/watch/${heroType}/${hero.id}`)}>
                   ℹ  More Info
+                </button>
+                <button className="tv-btn tv-btn--ghost" onClick={handleSurpriseMe}>
+                  🎲 Surprise Me
                 </button>
               </div>
             </div>

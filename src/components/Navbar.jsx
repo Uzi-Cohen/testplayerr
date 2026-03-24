@@ -4,11 +4,12 @@ const NAV_ITEMS = [
   { label: 'Home',     path: '/' },
   { label: 'Movies',   path: '/movies' },
   { label: 'TV Shows', path: '/tv' },
+  { label: 'My List',  path: '/watchlist' },
   { label: '🔍 Search', path: '/search' },
 ]
 
-// navFocused / navCol can be passed by the page to show D-pad highlight on nav bar
-export default function Navbar({ navFocused = false, navCol = 0 }) {
+// surpriseFn: optional callback for the Surprise Me button (passes trending data down)
+export default function Navbar({ navFocused = false, navCol = 0, onSurpriseMe }) {
   const location = useLocation()
   const navigate = useNavigate()
 
@@ -23,7 +24,7 @@ export default function Navbar({ navFocused = false, navCol = 0 }) {
       {/* Nav links */}
       <div className="tv-navbar__links">
         {NAV_ITEMS.map((item, i) => {
-          const isActive = location.pathname === item.path
+          const isActive  = location.pathname === item.path
           const isFocused = navFocused && navCol === i
           return (
             <button
@@ -31,8 +32,8 @@ export default function Navbar({ navFocused = false, navCol = 0 }) {
               onClick={() => navigate(item.path)}
               className={[
                 'tv-navbar__link',
-                isActive   ? 'tv-navbar__link--active'   : '',
-                isFocused  ? 'tv-navbar__link--focused'  : '',
+                isActive  ? 'tv-navbar__link--active'  : '',
+                isFocused ? 'tv-navbar__link--focused' : '',
               ].join(' ')}
             >
               {item.label}
@@ -40,6 +41,13 @@ export default function Navbar({ navFocused = false, navCol = 0 }) {
           )
         })}
       </div>
+
+      {/* Surprise Me */}
+      {onSurpriseMe && (
+        <button className="tv-navbar__surprise" onClick={onSurpriseMe} title="Play something random">
+          🎲 Surprise Me
+        </button>
+      )}
     </nav>
   )
 }

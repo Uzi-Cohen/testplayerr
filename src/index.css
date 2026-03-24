@@ -1153,6 +1153,295 @@
   border-radius: 4px;
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   WATCHLIST HEART BUTTON (on MovieCard)
+   ═══════════════════════════════════════════════════════════════ */
+
+.tv-card__heart {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.65);
+  border: none;
+  color: rgba(255,255,255,0.55);
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s, transform 0.15s;
+  z-index: 3;
+  line-height: 1;
+  padding: 0;
+}
+
+.tv-card:hover .tv-card__heart,
+.tv-card--active .tv-card__heart {
+  opacity: 1;
+}
+
+.tv-card__heart--active {
+  color: #e8473a;
+  opacity: 1 !important;
+}
+
+.tv-card__heart:hover {
+  transform: scale(1.2);
+  color: #e8473a;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   NAVBAR — Surprise Me button
+   ═══════════════════════════════════════════════════════════════ */
+
+.tv-navbar__surprise {
+  margin-left: auto;
+  padding: 8px 18px;
+  background: rgba(0,200,150,0.12);
+  border: 1px solid rgba(0,200,150,0.35);
+  border-radius: 20px;
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.12s;
+  white-space: nowrap;
+}
+
+.tv-navbar__surprise:hover,
+.tv-navbar__surprise:focus {
+  background: rgba(0,200,150,0.22);
+  border-color: var(--accent);
+  transform: scale(1.04);
+  outline: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FILTER LABEL in chip rows
+   ═══════════════════════════════════════════════════════════════ */
+
+.tv-filter-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  padding: 0 4px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   WATCH PAGE — new action buttons
+   ═══════════════════════════════════════════════════════════════ */
+
+.detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.detail-watchlist-btn {
+  padding: 10px 20px;
+  background: rgba(255,255,255,0.06);
+  border: 1.5px solid rgba(255,255,255,0.18);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.detail-watchlist-btn:hover {
+  background: rgba(232,71,58,0.12);
+  border-color: #e8473a;
+  color: #e8473a;
+}
+
+.detail-watchlist-btn--active {
+  background: rgba(232,71,58,0.15);
+  border-color: #e8473a;
+  color: #e8473a;
+}
+
+.detail-watched-btn {
+  padding: 10px 20px;
+  background: rgba(255,255,255,0.04);
+  border: 1.5px solid rgba(255,255,255,0.12);
+  border-radius: 6px;
+  color: var(--text-mid);
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.detail-watched-btn:hover {
+  background: rgba(0,200,150,0.1);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   WATCHLIST PAGE
+   ═══════════════════════════════════════════════════════════════ */
+
+.wl-section-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text);
+  margin-bottom: 20px;
+}
+
+.wl-empty {
+  color: var(--text-dim);
+  font-size: 0.95rem;
+  padding: 16px 0;
+}
+
+.wl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 20px 16px;
+}
+
+.wl-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-radius: 6px;
+  overflow: visible;
+}
+
+.wl-card__img-wrap {
+  position: relative;
+  border-radius: 6px;
+  overflow: hidden;
+  aspect-ratio: 2/3;
+  background: var(--card);
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  display: block;
+  width: 100%;
+  transition: transform 0.15s;
+}
+
+.wl-card__img-wrap:hover {
+  transform: scale(1.03);
+}
+
+.wl-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.wl-card__no-poster {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: var(--text-dim);
+}
+
+.wl-card__play-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.wl-card__img-wrap:hover .wl-card__play-overlay {
+  opacity: 1;
+}
+
+.wl-card__progress-track {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(255,255,255,0.15);
+}
+
+.wl-card__progress-fill {
+  height: 100%;
+  background: var(--accent);
+}
+
+.wl-card__info {
+  padding: 0 2px;
+}
+
+.wl-card__title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wl-card__meta {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+.wl-card__remove {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #e8473a;
+  border: none;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s, transform 0.15s;
+  z-index: 4;
+  padding: 0;
+  line-height: 1;
+}
+
+.wl-card:hover .wl-card__remove {
+  opacity: 1;
+}
+
+.wl-card__remove:hover {
+  transform: scale(1.15);
+}
+
 /* Footer */
 .tv-footer {
   text-align: center;
