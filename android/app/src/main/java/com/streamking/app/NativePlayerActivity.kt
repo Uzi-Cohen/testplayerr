@@ -38,10 +38,12 @@ class NativePlayerActivity : Activity() {
         playerView = findViewById(R.id.playerView)
         playerView.player = player
 
+        val urlLower = url.lowercase()
         val sourceType = when {
-            url.contains(".mpd") -> SourceType.Dash
-            url.contains(".m3u8") -> SourceType.Hls
-            else -> SourceType.Progressive
+            urlLower.contains(".mpd") || urlLower.contains("dash") || urlLower.contains("manifest") -> SourceType.Dash
+            urlLower.contains(".m3u8") || urlLower.contains("m3u8") || urlLower.contains("hls") -> SourceType.Hls
+            urlLower.contains(".mp4") || urlLower.contains(".mkv") || urlLower.contains(".avi") -> SourceType.Progressive
+            else -> SourceType.Hls // most streaming URLs are HLS even without a file extension
         }
 
         val source = Source(
