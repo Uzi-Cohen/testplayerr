@@ -72,10 +72,9 @@ class NativePlayerActivity : Activity() {
         val playerViewConfig = PlayerViewConfig(
             uiConfig = UiConfig.WebUi(
                 cssLocation = "file:///android_asset/bitmovin-tv.css",
-                forceUseWebUiOnTv = true,
             )
         )
-        playerView = PlayerView(this, playerViewConfig)
+        playerView = PlayerView(this, null, playerViewConfig)
         playerView.visibility = View.GONE
         root.addView(playerView, matchParent())
 
