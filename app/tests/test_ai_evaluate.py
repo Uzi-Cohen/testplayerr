@@ -88,7 +88,7 @@ def main():
         total = ai_evaluate.write_csv(conn, path=__import__("pathlib").Path("data/test_scored.csv"))
         assert total == 1
 
-    with open("data/test_scored.csv") as f:
+    with open("data/test_scored.csv", encoding="utf-8") as f:
         content = f.read()
     assert "match_score" in content and "82" in content and "apply" in content
     print("DB round-trip + CSV output OK")

@@ -23,7 +23,7 @@ FILTERS_CONFIG_PATH = "filters.yaml"
 
 
 def _load_config(path: str = FILTERS_CONFIG_PATH) -> dict:
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
