@@ -3,49 +3,62 @@
 # keyword + location, so they catch companies you haven't identified yet —
 # at the cost of more noise, which is exactly what filters.py exists for.
 #
-# type: one of "adzuna" | "remotive"
+# type: one of "adzuna" | "remotive" | "jooble"
 # params: passed straight through to that aggregator's search API, EXCEPT
-#   max_pages (adzuna only) — a pipeline-level control consumed by
-#   fetch_adzuna() before building the request, not sent to Adzuna itself.
+#   max_pages — a pipeline-level control consumed before building the
+#   request, not sent to the aggregator itself.
 #
-# Customized for Uzi Cohen — QA Engineer, Israel-based. Adzuna is dropped
-# entirely here, for two independent reasons:
-#   1. Adzuna doesn't cover Israel as a country at all (their supported
-#      country list is US/UK/CA/AU/DE/FR/etc — no "il").
-#   2. Even if it did, app/aggregator_clients.py's fetch_adzuna() hardcodes
-#      the request URL to https://api.adzuna.com/v1/api/jobs/ca/search/...
-#      ("ca" = Canada) regardless of what's in an aggregator's params — a
-#      leftover from the upstream template's Alberta/Canada search. Using
-#      Adzuna for a different country would need that hardcoded "ca" made
-#      configurable first, which is a code change, not a config change.
-# If you ever want it back (e.g. searching US/UK remote roles), fix that
-# hardcode, set ADZUNA_APP_ID/ADZUNA_APP_KEY, and add an aggregator entry
-# with type: adzuna back in below.
+# Customized for Uzi Cohen — QA Engineer, Israel-based.
 #
-# Remotive is kept — no auth needed, remote-only listings (global, not
-# Israel-specific, so this only ever supplements companies.yaml's
-# Israel-office direct fetches, it doesn't replace them for on-site/hybrid
-# search). Multiple entries below, one per keyword variant, since
-# Remotive's `search` param does a simple substring match and QA roles get
-# posted under several different title conventions.
+# THIS is the real fix for "why is companies.yaml hardcoded" — an ATS API
+# like Greenhouse has no "search every company" endpoint, so companies.yaml
+# can only ever be a list of companies someone already knows about. Jooble
+# below is a genuine job-search META-ENGINE: it indexes postings across
+# thousands of local job boards, agencies, and company career pages per
+# country/city, so it searches the WHOLE Israeli market by keyword+location
+# with no company list needed at all — this is the dynamic search, not
+# companies.yaml. companies.yaml also grows on its own now: every aggregator
+# fetch here (Jooble included) feeds app/discover_companies.py, so any
+# posting that resolves to a real Greenhouse/Lever/Ashby page gets appended
+# to companies.yaml automatically after the run — you shouldn't need to
+# hand-maintain that file going forward.
+#
+# Adzuna is dropped: it doesn't cover Israel as a country at all, and its
+# client code (app/aggregator_clients.py) hardcodes a Canada-only endpoint
+# on top of that. Remotive is dropped too: it's remote-only (misses
+# Tel Aviv on-site/hybrid roles, which is most of the Israeli market) and
+# thin — a real meta-search engine like Jooble is a better fit for "search
+# the whole market" than another curated job board.
 
 aggregators:
-  - name: Remotive (QA Engineer)
-    type: remotive
+  - name: Jooble (QA Engineer, Israel)
+    type: jooble
     params:
-      search: "QA Engineer"
-    notes: >
-      No auth needed. Remote-only listings (won't catch Israel on-site/
-      hybrid roles — see companies.yaml for that). Remotive asks for max
-      4 requests/day and max 2/minute — keep total Remotive entries here
-      small. Listings are delayed 24h from posting per their terms.
+      keywords: "QA Engineer"
+      location: "Israel"
+      ResultOnPage: 20
+      max_pages: 5
 
-  - name: Remotive (QA Automation / SDET)
-    type: remotive
+  - name: Jooble (QA Automation, Tel Aviv area)
+    type: jooble
     params:
-      search: "QA Automation"
+      keywords: "QA Automation"
+      location: "Tel Aviv"
+      ResultOnPage: 20
+      max_pages: 5
 
-  - name: Remotive (Test Automation Engineer)
-    type: remotive
+  - name: Jooble (SDET / Test Automation Engineer, Israel)
+    type: jooble
     params:
-      search: "Test Automation"
+      keywords: "SDET OR \"Test Automation Engineer\""
+      location: "Israel"
+      ResultOnPage: 20
+      max_pages: 5
+
+  - name: Jooble (Quality Engineer, Israel)
+    type: jooble
+    params:
+      keywords: "Quality Engineer"
+      location: "Israel"
+      ResultOnPage: 20
+      max_pages: 3

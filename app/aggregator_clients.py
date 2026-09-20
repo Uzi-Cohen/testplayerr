@@ -30,6 +30,7 @@ DISCOVERED_COMPANIES: list[dict] = []
 
 _GREENHOUSE_URL_RE = re.compile(r"(?:job-boards|boards)\.greenhouse\.io/([^/]+)/jobs/(\d+)")
 _LEVER_URL_RE = re.compile(r"jobs\.lever\.co/([^/]+)/([0-9a-f-]{36})")
+_ASHBY_URL_RE = re.compile(r"jobs\.ashbyhq\.com/([^/]+)/([0-9a-f-]{36})")
 _SCRIPT_STYLE_RE = re.compile(r"(?is)<(script|style)[^>]*>.*?</\1>")
 
 # NOTE: redirect_url is ALWAYS an adzuna.* URL (their own tracking/details
@@ -310,6 +311,29 @@ def fetch_adzuna(params: dict) -> list[dict]:
     return jobs
 
 
+def _discover_from_direct_url(company_name: str, url: str) -> None:
+    """Best-effort: if `url` is ALREADY a recognized ATS's own job-posting
+    URL — as opposed to Adzuna's tracking redirect, which needs following
+    first (see fetch_full_description above) — queue the company for
+    discover_companies.py to pick up, no extra request needed. This is
+    the only company-discovery path left now that Adzuna (which drove the
+    original template's discovery) is dropped from aggregators.yaml — see
+    aggregators.yaml's header comment for why. Remotive's `url` field
+    often points straight at the source ATS since that's who the posting
+    was pulled from."""
+    if not url:
+        return
+    for pattern, ats in (
+        (_GREENHOUSE_URL_RE, "greenhouse"),
+        (_LEVER_URL_RE, "lever"),
+        (_ASHBY_URL_RE, "ashby"),
+    ):
+        m = pattern.search(url)
+        if m:
+            DISCOVERED_COMPANIES.append({"name": company_name, "ats": ats, "slug": m.group(1)})
+            return
+
+
 def fetch_remotive(params: dict) -> list[dict]:
     url = "https://remotive.com/api/remote-jobs"
     resp = httpx.get(url, params=params, headers={"User-Agent": USER_AGENT}, timeout=TIMEOUT)
@@ -318,20 +342,109 @@ def fetch_remotive(params: dict) -> list[dict]:
 
     jobs = []
     for j in data.get("jobs", []):
+        company_name = j.get("company_name", "Unknown")
+        job_url = j.get("url", "")
+        _discover_from_direct_url(company_name, job_url)
         jobs.append({
-            "company": j.get("company_name", "Unknown"),
+            "company": company_name,
             "title": j.get("title", ""),
             "location": j.get("candidate_required_location", ""),
-            "url": j.get("url", ""),
+            "url": job_url,
             "posted_at": j.get("publication_date"),
             "description": j.get("description", ""),  # full HTML per Remotive's docs
         })
     return jobs
 
 
+def fetch_jooble(params: dict) -> list[dict]:
+    """Jooble is a real job-search meta-engine: it aggregates postings from
+    thousands of local job boards, recruitment agencies, and company
+    career pages per country/city. Unlike companies.yaml, this needs NO
+    pre-known company list — you give it keywords + a location string and
+    it searches the whole market, which is the actual point of this file
+    (aggregator_clients.py) as opposed to ats_clients.py's one-board-per-
+    company approach. Jooble has real Israel coverage (il.jooble.org is a
+    real, populated domain), unlike Adzuna.
+
+    Needs a free API key from https://jooble.org/api/about (a short signup
+    form; the key arrives by email, not instantly) as JOOBLE_API_KEY.
+
+    Reuses fetch_full_description (defined above for Adzuna) to fetch a
+    fuller JD and attempt company discovery when Jooble's own `snippet` is
+    thin and the job already looks like a real candidate — same gating
+    logic as fetch_adzuna, for the same reason (don't turn a large result
+    set into an equally large number of extra requests).
+
+    CONFIDENCE NOTE: built from Jooble's own help-center REST API docs and
+    third-party integration writeups (jobspipe.dev, Apify listings) — this
+    sandbox has no outbound network access at all, so it's never been hit
+    live. Watch the first real `python -m app.main` run's Jooble line
+    closely and report back if the response shape doesn't match.
+    """
+    api_key = os.environ.get("JOOBLE_API_KEY")
+    if not api_key:
+        raise RuntimeError(
+            "JOOBLE_API_KEY env var not set — register for a free key at "
+            "https://jooble.org/api/about (arrives by email)"
+        )
+
+    params = dict(params)  # don't mutate the caller's dict (reused across runs)
+    max_pages = params.pop("max_pages", 3)
+    page_size = params.get("ResultOnPage", 20)
+
+    jobs = []
+    for page in range(1, max_pages + 1):
+        body = {**params, "page": page}
+        resp = httpx.post(
+            f"https://jooble.org/api/{api_key}",
+            json=body, headers={"User-Agent": USER_AGENT, "Content-Type": "application/json"},
+            timeout=TIMEOUT,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        results = data.get("jobs", [])
+        if not results:
+            break
+
+        for j in results:
+            title = j.get("title", "")
+            loc = j.get("location", "")
+            link = j.get("link", "")
+            snippet = j.get("snippet", "")
+            company_name = j.get("company") or "Unknown"
+
+            description = snippet
+            if (
+                filters.title_is_relevant(title)
+                and filters.location_is_allowed(loc)
+                and filters.looks_truncated(snippet)
+            ):
+                full = fetch_full_description(link)
+                if full["description"] and len(full["description"]) > len(snippet):
+                    description = full["description"]
+                if full["ats"] and full["slug"]:
+                    DISCOVERED_COMPANIES.append({
+                        "name": company_name, "ats": full["ats"], "slug": full["slug"],
+                    })
+
+            jobs.append({
+                "company": company_name,
+                "title": title,
+                "location": loc,
+                "url": link,
+                "posted_at": j.get("updated"),
+                "description": description,
+            })
+
+        if len(results) < page_size:
+            break  # short page -> no more results, stop paginating early
+    return jobs
+
+
 FETCHERS = {
     "adzuna": fetch_adzuna,
     "remotive": fetch_remotive,
+    "jooble": fetch_jooble,
 }
 
 

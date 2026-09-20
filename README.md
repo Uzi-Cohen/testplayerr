@@ -53,9 +53,31 @@ run** — no "fill in your own profile/filters/companies" step needed:
   one is the least-verified fetcher here (built from Comeet's public
   docs + third-party scraper writeups, no live test possible from this
   sandbox at all) — verify before trusting it.
-- **`aggregators.yaml`** — Adzuna dropped (no Israel coverage, and the
-  underlying client code hardcodes a Canada-only endpoint); Remotive kept,
-  with QA-specific search keywords instead of "software engineer".
+- **`aggregators.yaml`** — this is the actual answer to "why is
+  companies.yaml hardcoded": an ATS like Greenhouse has no "list every
+  company" endpoint, so companies.yaml can only ever be a list of
+  companies someone already identified. **Jooble** is the real dynamic
+  search — a job-search meta-engine that indexes postings across
+  thousands of local job boards, agencies, and company career sites per
+  country/city, so it searches the whole Israeli market by keyword +
+  location with no company list at all. Needs a free key (see
+  `.env.example`). Adzuna and Remotive are both dropped: Adzuna has no
+  Israel coverage at all (and its client code hardcodes a Canada-only
+  endpoint on top of that); Remotive is remote-only and too thin to be
+  the primary search.
+- **`companies.yaml` now grows itself** — every aggregator fetch (Jooble,
+  and Remotive's `url` field if you re-add it) feeds
+  `app/discover_companies.py`: any posting that resolves to a real
+  Greenhouse/Lever/Ashby URL gets appended to `companies.yaml`
+  automatically after the run. You shouldn't need to hand-maintain that
+  file going forward — it's a cache the pipeline builds from what it
+  actually finds, not something you or I type in from memory.
+- **The web board can run the whole pipeline now** — a "Fetch New Jobs"
+  button at the top of `web/` runs `python -m app.main` (and optionally
+  `app.ai_evaluate`) for you via `web/app/api/fetch/route.ts`, and shows
+  the run's output right there. Point being: for day-to-day use, you
+  never need a terminal — open the board, click the button, review
+  results.
 
 ## How it works
 
@@ -63,8 +85,9 @@ run** — no "fill in your own profile/filters/companies" step needed:
    - `companies.yaml` — known companies queried directly via their ATS
      (Greenhouse, Ashby, Workable, Lever, SmartRecruiters, Comeet) —
      precise, low noise.
-   - `aggregators.yaml` — broad keyword search across many employers at
-     once (Remotive) — wider reach, more noise, remote-only.
+   - `aggregators.yaml` — real market-wide keyword+location search
+     (Jooble) — no pre-known company list needed, this is what actually
+     covers companies not in companies.yaml.
 2. **Filter** (`app/filters.py`) — drops anything that isn't a QA/testing-
    shaped title or isn't in an allowed Israel-area location.
 3. **Dedup** (`app/dedup.py`) — everything fetched is stored in a local
@@ -78,19 +101,24 @@ run** — no "fill in your own profile/filters/companies" step needed:
 5. **Review** (`web/`) — a local Next.js app reading/writing the same
    SQLite database directly, for browsing results and tracking your own
    `applied / interview / rejected / skipped / silence` status and notes.
+   Has a **Fetch New Jobs** button that runs step 1 (and optionally step
+   4) for you — see "Review results" below.
 
 ## Setup
 
 ```bash
 pip install -r requirements.txt
 cp .env.example .env
-# fill in ANTHROPIC_API_KEY in .env — only needed for the AI evaluation step
+# fill in .env:
+#   JOOBLE_API_KEY   — required, the real dynamic search (see aggregators.yaml)
+#   ANTHROPIC_API_KEY — only needed for the AI evaluation step
 ```
 
 `profile.yaml`, `filters.yaml`, `companies.yaml`, and `aggregators.yaml`
-are already filled in — you can run this as-is. Revisit `filters.yaml`'s
-`location_allow_patterns` or `companies.yaml` any time your target list
-changes.
+are already filled in — you can run this as-is once `JOOBLE_API_KEY` is
+set. Revisit `filters.yaml`'s `location_allow_patterns` or
+`aggregators.yaml`'s keywords any time your target list changes;
+`companies.yaml` grows on its own (see above).
 
 ## Usage
 
@@ -132,6 +160,12 @@ make web                              # starts the board at http://localhost:300
 Reads/writes `data/seen_jobs.sqlite3` directly — no export/import step.
 See [`web/README.md`](web/README.md) for details (custom `DB_PATH`,
 production build, etc).
+
+**For everyday use, skip steps 1 and 2 entirely** — open the board and
+click **Fetch New Jobs** at the top. It runs `python -m app.main` for you
+(check the box next to it to also run `app.ai_evaluate` after) and shows
+the run's log inline, so the terminal commands above are only something
+you'd use for debugging (e.g. `--company <slug>` to test one fetcher).
 
 ## Makefile commands
 
@@ -176,7 +210,7 @@ app/
   tests/                   pytest + standalone sanity-check scripts
 web/                       Next.js review board (see web/README.md)
 companies.yaml             company -> ATS registry (Israel/mobile/security-focused)
-aggregators.yaml           aggregator search config (Remotive, QA keywords)
+aggregators.yaml           aggregator search config (Jooble, QA keywords, Israel-wide)
 filters.yaml               title/location filter rules (QA-focused, Israel locations)
 profile.yaml               Uzi Cohen's real profile, fed to ai_evaluate.py
 profile.example.yaml       blank template (kept for reference)

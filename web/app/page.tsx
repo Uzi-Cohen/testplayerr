@@ -6,10 +6,17 @@ import Toolbar from "@/app/components/Toolbar";
 import JobsTable from "@/app/components/JobsTable";
 import JobDetailPanel from "@/app/components/JobDetailPanel";
 
+type FetchStep = { name: string; ok: boolean; code: number | null; output: string };
+
 export default function Page() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [fetching, setFetching] = useState(false);
+  const [runEvaluate, setRunEvaluate] = useState(false);
+  const [fetchSteps, setFetchSteps] = useState<FetchStep[] | null>(null);
+  const [showLog, setShowLog] = useState(false);
 
   const [aiStatusFilter, setAiStatusFilter] = useState("all");
   const [myStatusFilter, setMyStatusFilter] = useState("all");
@@ -40,6 +47,27 @@ export default function Page() {
   useEffect(() => {
     load();
   }, []);
+
+  async function runFetch() {
+    setFetching(true);
+    setFetchSteps(null);
+    try {
+      const res = await fetch("/api/fetch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ runEvaluate }),
+      });
+      const data = await res.json();
+      setFetchSteps(data.steps ?? [{ name: "Fetch", ok: false, code: null, output: data.error ?? "Unknown error" }]);
+      setShowLog(true);
+      await load();
+    } catch (e: any) {
+      setFetchSteps([{ name: "Fetch", ok: false, code: null, output: e.message }]);
+      setShowLog(true);
+    } finally {
+      setFetching(false);
+    }
+  }
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) {
@@ -121,6 +149,37 @@ export default function Page() {
         <div className="subtitle">
           Reads and writes data/seen_jobs.sqlite3 directly — no export/import step.
         </div>
+        <div className="fetch-bar">
+          <button className="btn" onClick={runFetch} disabled={fetching}>
+            {fetching ? "Fetching…" : "⟳ Fetch New Jobs"}
+          </button>
+          <label className="fetch-evaluate-toggle">
+            <input
+              type="checkbox"
+              checked={runEvaluate}
+              onChange={(e) => setRunEvaluate(e.target.checked)}
+              disabled={fetching}
+            />
+            also score with AI (costs a little, needs ANTHROPIC_API_KEY)
+          </label>
+          {fetchSteps && (
+            <button className="btn secondary" onClick={() => setShowLog((s) => !s)}>
+              {showLog ? "Hide log" : "Show last run log"}
+            </button>
+          )}
+        </div>
+        {showLog && fetchSteps && (
+          <div className="fetch-log">
+            {fetchSteps.map((s, i) => (
+              <div key={i} className={`fetch-log-step ${s.ok ? "ok" : "fail"}`}>
+                <div className="fetch-log-step-title">
+                  {s.ok ? "✓" : "✗"} {s.name} {s.code !== null && `(exit ${s.code})`}
+                </div>
+                <pre>{s.output || "(no output)"}</pre>
+              </div>
+            ))}
+          </div>
+        )}
       </header>
 
       <Toolbar
