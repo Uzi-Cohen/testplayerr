@@ -1,0 +1,123 @@
+# Master experience profile — the single source of truth fed into the AI
+# evaluation step (ai_evaluate.py). Organized by functional competency, not
+# by job title, so the model judges FUNCTIONAL FIT against a role rather
+# than pattern-matching on past job titles.
+#
+# This is Uzi Cohen's real profile, built directly from his CV.
+
+identity:
+  name: "Uzi Cohen"
+  headline: "QA Engineer — Mobile & SDK Testing, Manual + Automation"
+  years_experience: 5
+  location: "Petah Tikva, Israel"
+  location_constraints: >
+    Based in Petah Tikva, Israel. Open to on-site/hybrid roles across the
+    Tel Aviv/Gush Dan area (Tel Aviv, Herzliya, Ramat Gan, Raanana,
+    Petah Tikva) and to remote roles, including remote roles for
+    international companies. Not seeking relocation outside Israel.
+  education:
+    - "Full-Stack Web Development — Developers Institute, 2022 (335 hours, government-certified; final average 90)"
+    - "QA Engineering Certification — Atid Automation, 2021"
+    - "QA Automation: Selenium & Appium — Atid Automation, 2021"
+
+core_stack:
+  languages_frameworks: ["Java", "Appium", "Selenium", "TestNG", "JUnit", "REST Assured"]
+  testing_practice: ["Manual & exploratory testing", "Test planning", "API testing", "Security testing (OWASP Top 10)", "Visual regression", "Cross-browser/cross-device testing"]
+  tools_infra: ["GitLab CI/CD", "Git", "Docker", "Perfecto Cloud", "Charles Proxy", "SQL", "AWS DynamoDB", "Jira", "Azure DevOps", "Postman"]
+  familiar_with: ["Playwright", "Python"]
+
+competencies:
+  mobile_sdk_testing:
+    summary: >
+      Manual and exploratory testing of mobile SDKs and their third-party
+      integrations across iOS and Android, from new-feature validation
+      through release regression, on a product where SDK behavior across
+      many partner integrations is the core quality risk.
+    evidence:
+      - "Owned manual and exploratory testing of mobile SDKs and their
+         integrations across iOS and Android at Digital Turbine, from
+         new-feature validation through release regression."
+      - "Tested a large third-party integration migration end to end,
+         identifying critical defects through edge-case and exploratory
+         testing before rollout (Digital Turbine)."
+      - "Automated iOS and Android test coverage for platform
+         integrations, delivering 300+ tests and removing a full day of
+         manual regression per week (Digital Turbine)."
+
+  test_automation:
+    summary: >
+      Builds and maintains Java-based automation frameworks (Appium,
+      Selenium, TestNG, REST Assured) from the ground up, and turns
+      recurring manual findings into durable regression coverage rather
+      than re-testing the same thing by hand every release.
+    evidence:
+      - "Built the automation framework covering iOS, Android, and web
+         from the ground up at Mobile Research Labs, and maintained it as
+         the product grew — sole QA engineer on that build."
+      - "Turned recurring manual findings — data mismatches, duplicate
+         records — into automated regression coverage, catching critical
+         defects before release on a weekly basis (Digital Turbine)."
+      - "Built a visual regression tool in Java that compared rendered
+         screens across devices and builds, cutting flaky test failures
+         by 80% (Digital Turbine)."
+      - "Wrote and executed 300+ test plans across mobile and web,
+         tracked in Jira and Azure DevOps; roughly half were later
+         automated (Mobile Research Labs)."
+
+  security_testing:
+    summary: >
+      Led a security testing initiative applying OWASP Top 10 methodology
+      against both API and web surfaces, not just following a checklist —
+      found and got real vulnerabilities fixed.
+    evidence:
+      - "Led an OWASP Top 10 security testing initiative that surfaced
+         20+ API and web vulnerabilities, including IDOR, authentication
+         bypass, and SQL injection; all were fixed by the development
+         team (Mobile Research Labs)."
+
+  sole_qa_ownership:
+    summary: >
+      Comfortable being the only QA on a product: owns test planning,
+      manual and exploratory testing, and release sign-off end to end
+      across iOS, Android, and web, without a QA lead or team to lean on.
+    evidence:
+      - "Sole QA engineer for the product at Mobile Research Labs — owned
+         test planning, manual and exploratory testing, and release
+         sign-off across iOS, Android, and web."
+      - "Validated backend-to-frontend data integrity by querying
+         database tables directly and cross-checking values against the
+         live web UI (Mobile Research Labs)."
+
+  ci_cd_and_release_reliability:
+    summary: >
+      Treats CI reliability itself as a quality problem, not just the
+      product under test — flaky pipelines erode trust in the whole test
+      suite.
+    evidence:
+      - "Improved GitLab CI reliability by tightening test isolation and
+         retry handling, reducing pipeline failure rates (Digital
+         Turbine)."
+
+experience_timeline:
+  - company: "Digital Turbine"
+    dates: "May 2024 – June 2026"
+    title: "QA Engineer (joined via Qualitest; converted to direct hire 2025)"
+    domain: "Mobile advertising / app-install SDKs and third-party integrations"
+    stack: ["Java", "Appium", "Selenium", "TestNG", "REST Assured", "GitLab CI", "Charles Proxy", "Perfecto", "Jira"]
+  - company: "Mobile Research Labs"
+    dates: "September 2021 – May 2024"
+    title: "QA Engineer (sole QA)"
+    domain: "Mobile app / web product"
+    stack: ["Java", "Appium", "Selenium", "TestNG", "SQL", "AWS DynamoDB", "Postman", "Jira", "Azure DevOps"]
+
+constraints:
+  - "Wants a QA Engineer / SDET / Automation Engineer IC role — manual
+     and automation combined, not automation-only or manual-only."
+  - "Strongest fit: mobile (iOS/Android) or mobile-SDK products, API
+     testing, or security-conscious products where OWASP-style testing
+     is valued."
+  - "Based in Israel (Petah Tikva); open to Tel Aviv-area on-site/hybrid
+     or remote (including remote for international companies); not
+     seeking relocation."
+  - "Comfortable as the only QA on a product, but equally open to joining
+     an existing QA team."

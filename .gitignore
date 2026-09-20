@@ -1,16 +1,15 @@
-node_modules
-dist
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store
 .env
-.env.local
-
-# Android signing — NEVER commit these
-android/keystore.properties
-android/keystore.jks
-android/*.jks
-android/*.keystore
-
-# Android build artifacts
-android/.gradle
-android/app/build
-android/build
-android/local.properties
+web/node_modules/
+web/.next/
+web/tsconfig.tsbuildinfo
+.idea/*
+data/test_*
+data/
+# profile.yaml is intentionally NOT gitignored in this fork — it holds
+# Uzi's real profile and this repo is his own personal job-search tool,
+# meant to be cloned ready-to-run rather than requiring a setup step.

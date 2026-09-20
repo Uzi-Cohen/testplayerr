@@ -1,0 +1,143 @@
+# Company registry for the job discovery pipeline.
+# ats: one of "greenhouse" | "ashby" | "workable" | "lever" | "smartrecruiters"
+# slug: the identifier used in that ATS's public API URL
+#
+# Customized for Uzi Cohen — QA Engineer (mobile/SDK, iOS+Android, Java/
+# Appium/Selenium/TestNG/REST Assured, security testing), Israel-based.
+#
+# ⚠️ IMPORTANT — VERIFY BEFORE TRUSTING: this session had no live outbound
+# network access (sandboxed dev environment, same limitation the original
+# author documented in app/ats_clients.py), so none of the slugs below
+# were hit against a real API the way the upstream template's Canadian
+# companies were. They're a best-effort list of companies that likely run
+# on one of the 5 supported ATSes, from general knowledge, not a verified
+# registry. Before a real run, sanity-check each one:
+#
+#   python -m app.main --company <slug>
+#
+# Delete/fix any that 404 or come back empty when you expect postings, and
+# add the ones you actually find while applying. Also see the README's
+# note on Comeet: a large share of Israeli tech companies (much of the
+# Tel Aviv startup scene) run their careers page on Comeet, which isn't
+# one of the 5 ATSes this pipeline supports — those companies won't show
+# up here no matter how you spell the slug. companies.yaml direct-fetch is
+# strongest for multinationals with an Israel R&D center on Greenhouse/
+# Lever/Ashby; lean on aggregators.yaml + manual LinkedIn/company-site
+# search to cover the rest.
+
+companies:
+  # Mobile / ad-tech / SDK — closest match to Digital Turbine background
+  - name: AppsFlyer
+    ats: greenhouse
+    slug: appsflyer
+  - name: Taboola
+    ats: greenhouse
+    slug: taboola
+  - name: Outbrain
+    ats: greenhouse
+    slug: outbrain
+  - name: Moon Active
+    ats: greenhouse
+    slug: moonactive
+  - name: Lightricks
+    ats: greenhouse
+    slug: lightricks
+  - name: Similarweb
+    ats: greenhouse
+    slug: similarweb
+
+  # Security / OWASP-adjacent — matches the OWASP Top 10 testing background
+  - name: Wiz
+    ats: greenhouse
+    slug: wiz
+  - name: Snyk
+    ats: greenhouse
+    slug: snyk
+  - name: Cybereason
+    ats: greenhouse
+    slug: cybereason
+  - name: Axonius
+    ats: greenhouse
+    slug: axonius
+  - name: Aqua Security
+    ats: greenhouse
+    slug: aquasecurity
+  - name: SentinelOne
+    ats: greenhouse
+    slug: sentinelone
+  - name: Salt Security
+    ats: greenhouse
+    slug: saltsecurity
+  - name: Orca Security
+    ats: greenhouse
+    slug: orcasecurity
+  - name: Armis
+    ats: greenhouse
+    slug: armis
+  - name: Island
+    ats: greenhouse
+    slug: island
+  - name: Cyera
+    ats: ashby
+    slug: cyera
+
+  # Fintech / payments — QA-heavy, API-testing-heavy orgs
+  - name: Payoneer
+    ats: greenhouse
+    slug: payoneer
+  - name: Rapyd
+    ats: greenhouse
+    slug: rapyd
+  - name: Melio
+    ats: greenhouse
+    slug: melio
+  - name: Fundbox
+    ats: greenhouse
+    slug: fundbox
+  - name: Lemonade
+    ats: greenhouse
+    slug: lemonade
+  - name: Papaya Global
+    ats: greenhouse
+    slug: papayaglobal
+  - name: Next Insurance
+    ats: greenhouse
+    slug: nextinsurance
+
+  # Other Israeli / Israel-R&D tech with QA orgs
+  - name: JFrog
+    ats: greenhouse
+    slug: jfrog
+  - name: Gong
+    ats: greenhouse
+    slug: gong
+  - name: Redis
+    ats: greenhouse
+    slug: redislabs
+  - name: Yotpo
+    ats: greenhouse
+    slug: yotpo
+  - name: Guesty
+    ats: greenhouse
+    slug: guesty
+  - name: Bringg
+    ats: greenhouse
+    slug: bringg
+  - name: Explorium
+    ats: greenhouse
+    slug: explorium
+  - name: Verbit
+    ats: greenhouse
+    slug: verbit
+  - name: WalkMe
+    ats: greenhouse
+    slug: walkme
+  - name: HoneyBook
+    ats: greenhouse
+    slug: honeybook
+  - name: Bizzabo
+    ats: greenhouse
+    slug: bizzabo
+  - name: Deel
+    ats: ashby
+    slug: deel
