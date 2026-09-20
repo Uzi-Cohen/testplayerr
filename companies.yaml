@@ -1,0 +1,180 @@
+# Company registry for the job discovery pipeline.
+# ats: one of "greenhouse" | "ashby" | "workable" | "lever" | "smartrecruiters" | "comeet"
+# slug: the identifier used in that ATS's public API URL — EXCEPT for
+#   comeet, where it's the full board path from the company's public URL
+#   (e.g. "monday/41.00B" for comeet.com/jobs/monday/41.00B), not a bare
+#   company name. See app/ats_clients.py's fetch_comeet docstring for why.
+#
+# Customized for Uzi Cohen — QA Engineer (mobile/SDK, iOS+Android, Java/
+# Appium/Selenium/TestNG/REST Assured, security testing), Israel-based.
+#
+# ⚠️ IMPORTANT — VERIFY BEFORE TRUSTING, TWO CONFIDENCE TIERS BELOW:
+# this session had no live outbound network access at all (sandboxed dev
+# environment, same limitation the original template's author documented
+# in app/ats_clients.py), so NOTHING here was hit against a real API the
+# way the upstream template's Canadian companies were. Before a real run,
+# sanity-check every entry:
+#
+#   python -m app.main --company <slug>
+#
+#   1. The "greenhouse"/"ashby" entries below are a best-effort guess from
+#      general knowledge of which companies likely run on one of those
+#      ATSes — not independently confirmed at all.
+#   2. The "comeet" entries ARE backed by a real indexed URL found via web
+#      search during this session (i.e. an actual page Google/Bing has
+#      crawled, not a guess) — higher confidence than tier 1, but still
+#      unverified against a live API response, and Comeet boards churn
+#      (a company can close all reqs, so 0 results back doesn't
+#      necessarily mean the slug is wrong).
+#
+# Delete/fix any that 404 or come back empty when you expect postings, and
+# add the ones you actually find while applying. Comeet powers a large
+# share of the Israeli tech scene that Greenhouse/Lever/Ashby/
+# SmartRecruiters miss entirely — the comeet: section below is a starting
+# point, not a complete list; find more by opening a company's real
+# careers page and copying the board path out of the URL.
+
+companies:
+  # Mobile / ad-tech / SDK — closest match to Digital Turbine background
+  - name: AppsFlyer
+    ats: greenhouse
+    slug: appsflyer
+  - name: Taboola
+    ats: greenhouse
+    slug: taboola
+  - name: Outbrain
+    ats: greenhouse
+    slug: outbrain
+  - name: Lightricks
+    ats: greenhouse
+    slug: lightricks
+  - name: Similarweb
+    ats: greenhouse
+    slug: similarweb
+
+  # Security / OWASP-adjacent — matches the OWASP Top 10 testing background
+  - name: Wiz
+    ats: greenhouse
+    slug: wiz
+  - name: Snyk
+    ats: greenhouse
+    slug: snyk
+  - name: Cybereason
+    ats: greenhouse
+    slug: cybereason
+  - name: Axonius
+    ats: greenhouse
+    slug: axonius
+  - name: Aqua Security
+    ats: greenhouse
+    slug: aquasecurity
+  - name: SentinelOne
+    ats: greenhouse
+    slug: sentinelone
+  - name: Salt Security
+    ats: greenhouse
+    slug: saltsecurity
+  - name: Orca Security
+    ats: greenhouse
+    slug: orcasecurity
+  - name: Armis
+    ats: greenhouse
+    slug: armis
+  - name: Island
+    ats: greenhouse
+    slug: island
+  - name: Cyera
+    ats: ashby
+    slug: cyera
+
+  # Fintech / payments — QA-heavy, API-testing-heavy orgs
+  - name: Payoneer
+    ats: greenhouse
+    slug: payoneer
+  - name: Rapyd
+    ats: greenhouse
+    slug: rapyd
+  - name: Melio
+    ats: greenhouse
+    slug: melio
+  - name: Fundbox
+    ats: greenhouse
+    slug: fundbox
+  - name: Lemonade
+    ats: greenhouse
+    slug: lemonade
+  - name: Papaya Global
+    ats: greenhouse
+    slug: papayaglobal
+  - name: Next Insurance
+    ats: greenhouse
+    slug: nextinsurance
+
+  # Other Israeli / Israel-R&D tech with QA orgs
+  - name: JFrog
+    ats: greenhouse
+    slug: jfrog
+  - name: Gong
+    ats: greenhouse
+    slug: gong
+  - name: Redis
+    ats: greenhouse
+    slug: redislabs
+  - name: Yotpo
+    ats: greenhouse
+    slug: yotpo
+  - name: Guesty
+    ats: greenhouse
+    slug: guesty
+  - name: Bringg
+    ats: greenhouse
+    slug: bringg
+  - name: Verbit
+    ats: greenhouse
+    slug: verbit
+  - name: WalkMe
+    ats: greenhouse
+    slug: walkme
+  - name: HoneyBook
+    ats: greenhouse
+    slug: honeybook
+  - name: Bizzabo
+    ats: greenhouse
+    slug: bizzabo
+  - name: Deel
+    ats: ashby
+    slug: deel
+
+  # Comeet — see the confidence-tier note at the top of this file. Each of
+  # these board paths was found as a real indexed URL during this session
+  # (not guessed), e.g. https://www.comeet.com/jobs/monday/41.00B.
+  - name: monday.com
+    ats: comeet
+    slug: monday/41.00B
+  - name: ironSource
+    ats: comeet
+    slug: ironsrc/01.004
+  - name: Moon Active
+    ats: comeet
+    slug: moonactive/A2.00C
+  - name: Explorium
+    ats: comeet
+    slug: explorium/B4.00E
+  - name: Team8
+    ats: comeet
+    slug: team8/61.003
+  - name: CommIT
+    ats: comeet
+    slug: comm-it/76.008
+  - name: Kela Technologies
+    ats: comeet
+    slug: kelatechnologies/2A.007
+  - name: TripleTen
+    ats: comeet
+    slug: tripleten/98.008
+  - name: Abra R&D
+    ats: comeet
+    slug: abra_rnd/15.007
+  - name: Communix
+    ats: comeet
+    slug: comunix/86.006

@@ -1,0 +1,51 @@
+# Broad-coverage job aggregators (as opposed to companies.yaml, which is
+# one board per company). These search across many employers at once using
+# keyword + location, so they catch companies you haven't identified yet —
+# at the cost of more noise, which is exactly what filters.py exists for.
+#
+# type: one of "adzuna" | "remotive"
+# params: passed straight through to that aggregator's search API, EXCEPT
+#   max_pages (adzuna only) — a pipeline-level control consumed by
+#   fetch_adzuna() before building the request, not sent to Adzuna itself.
+#
+# Customized for Uzi Cohen — QA Engineer, Israel-based. Adzuna is dropped
+# entirely here, for two independent reasons:
+#   1. Adzuna doesn't cover Israel as a country at all (their supported
+#      country list is US/UK/CA/AU/DE/FR/etc — no "il").
+#   2. Even if it did, app/aggregator_clients.py's fetch_adzuna() hardcodes
+#      the request URL to https://api.adzuna.com/v1/api/jobs/ca/search/...
+#      ("ca" = Canada) regardless of what's in an aggregator's params — a
+#      leftover from the upstream template's Alberta/Canada search. Using
+#      Adzuna for a different country would need that hardcoded "ca" made
+#      configurable first, which is a code change, not a config change.
+# If you ever want it back (e.g. searching US/UK remote roles), fix that
+# hardcode, set ADZUNA_APP_ID/ADZUNA_APP_KEY, and add an aggregator entry
+# with type: adzuna back in below.
+#
+# Remotive is kept — no auth needed, remote-only listings (global, not
+# Israel-specific, so this only ever supplements companies.yaml's
+# Israel-office direct fetches, it doesn't replace them for on-site/hybrid
+# search). Multiple entries below, one per keyword variant, since
+# Remotive's `search` param does a simple substring match and QA roles get
+# posted under several different title conventions.
+
+aggregators:
+  - name: Remotive (QA Engineer)
+    type: remotive
+    params:
+      search: "QA Engineer"
+    notes: >
+      No auth needed. Remote-only listings (won't catch Israel on-site/
+      hybrid roles — see companies.yaml for that). Remotive asks for max
+      4 requests/day and max 2/minute — keep total Remotive entries here
+      small. Listings are delayed 24h from posting per their terms.
+
+  - name: Remotive (QA Automation / SDET)
+    type: remotive
+    params:
+      search: "QA Automation"
+
+  - name: Remotive (Test Automation Engineer)
+    type: remotive
+    params:
+      search: "Test Automation"

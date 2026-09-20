@@ -1,0 +1,131 @@
+# Deterministic pre-filter rules, read by app/filters.py. Edit these lists
+# directly as you refine what "in scope" means for you — no code changes
+# needed. See app/filters.py's module docstring for how they're applied.
+#
+# Customized for Uzi Cohen — QA Engineer (manual + automation, mobile SDKs,
+# iOS/Android, Java/Appium/Selenium/TestNG/REST Assured), based in Petah
+# Tikva, Israel.
+
+# Unambiguous QA-role title signals. If the title matches one of these,
+# it's kept regardless of exclusion_keywords below — e.g. "QA Engineer,
+# Payments" shouldn't get dropped just because some other word in the
+# title also happens to be in exclusion_keywords. Keep this list short and
+# genuinely unambiguous.
+priority_title_keywords:
+  - "qa engineer"
+  - "quality assurance engineer"
+  - "qa automation"
+  - "automation engineer"
+  - "sdet"
+  - "software development engineer in test"
+  - "test engineer"
+  - "test automation"
+  - "quality engineer"
+
+# Title must match at least one of these to be considered at all.
+title_allow_keywords:
+  - "qa"
+  - "quality assurance"
+  - "quality engineer"
+  - "test"
+  - "testing"
+  - "sdet"
+  - "automation"
+  - "tester"
+
+# Even if the title matched the allowlist above, drop it if it also
+# matches one of these — QA-adjacent titles or unrelated engineering
+# disciplines that aren't a fit. Deliberately does NOT exclude "manual" —
+# the candidate does both manual and automated testing.
+exclusion_keywords:
+  - "accountant"
+  - "accounting"
+  - "nurse"
+  - "nursing"
+  - "lawyer"
+  - "attorney"
+  - "paralegal"
+  - "chemist"
+  - "chemistry"
+  - "electrician"
+  - "plumber"
+  - "welder"
+  - "sales representative"
+  - "account executive"
+  - "sales engineer"
+  - "sales development"
+  - "business development representative"
+  - "recruiter"
+  - "talent acquisition"
+  - "talent brand"
+  - "warehouse"
+  - "forklift"
+  - "driver"
+  - "cdl"
+  - "teacher"
+  - "professor"
+  - "dentist"
+  - "physician"
+  - "pharmacist"
+  - "customer success"
+  - "account manager"
+  - "marketing"
+  - "copywriting"
+  - "compliance"
+  - "product marketing"
+  # QA-adjacent but not software QA — hardware/manufacturing/lab testing
+  - "hardware test"
+  - "hardware qa"
+  - "mechanical test"
+  - "electrical test"
+  - "materials test"
+  - "lab technician"
+  - "calibration"
+  - "food quality"
+  - "quality control inspector"
+  - "manufacturing quality"
+
+# Locations to keep, as regex patterns (case-insensitive) matched against
+# the free-text location string each ATS/aggregator returns. Israel-wide,
+# plus the cities most tech employers actually use, plus remote roles that
+# explicitly say Israel. Deliberately does NOT allow a bare "Remote" with
+# no country qualifier — some postings say "Remote Poland"/"Remote
+# Spain"/etc, so an allowlist needs an explicit country/region signal
+# instead.
+location_allow_patterns:
+  - '\bisrael\b'
+  - '\bpetah tikva\b'
+  - '\btel.?aviv\b'
+  - '\bherzliya\b'
+  - '\braanana\b'
+  - '\bra.anana\b'
+  - '\bramat.?gan\b'
+  - '\bjerusalem\b'
+  - '\bhaifa\b'
+  - '\bnetanya\b'
+  - '\brehovot\b'
+  - '\brishon.?le.?zion\b'
+  - '\bbnei.?brak\b'
+  - '\bkfar.?saba\b'
+  - '\bmodiin\b'
+  - '\bbeer.?sheva\b'
+  - '\byavne\b'
+  - '\blod\b'
+
+# JD stack dealbreakers: disabled (empty) for a QA search. This concept
+# ("reject if the JD requires language X and doesn't mention my own core
+# stack") comes from the original SWE-focused version of this tool, where
+# a job's implementation language IS the candidate's stack. For QA, the
+# product's implementation language (what the DEVELOPERS write the app
+# in) says little about whether the QA/automation stack (Java, Appium,
+# Selenium, TestNG, REST Assured) is a fit — most QA job postings don't
+# even mention it, and rejecting on it would silently drop good matches.
+# Leave both lists empty rather than repurposing them for something they
+# weren't designed for; app/filters.py treats an empty list as "this check
+# never fires" (see jd_stack_mismatch).
+stack_dealbreakers: []
+stack_core: []
+
+# Below this many characters, a JD is treated as a short aggregator teaser
+# snippet rather than a full posting (see app/filters.py's looks_truncated).
+truncated_description_min_chars: 400
