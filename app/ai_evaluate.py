@@ -96,7 +96,7 @@ seniority-level fit in the abstract."""
 
 
 def load_profile(path: str = "profile.yaml") -> dict:
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -192,7 +192,7 @@ def evaluate_one(client, profile: dict, job: dict, max_retries: int = 1) -> dict
 def write_csv(conn, path: Path = OUTPUT_CSV) -> int:
     path.parent.mkdir(parents=True, exist_ok=True)
     rows = list(dedup.iter_scored_candidates(conn))
-    with open(path, "w", newline="") as f:
+    with open(path, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=[
             "match_score", "recommendation", "company", "title", "location",
             "transferable_strengths", "genuine_gaps", "risk_factors", "url", "posted_at",
