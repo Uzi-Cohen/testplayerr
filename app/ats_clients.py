@@ -30,13 +30,29 @@ api.smartrecruiters.com's robots.txt, so it's NOT been hit live the way
 the others were. Verify it the same way Coveo/Treewalk's slugs got
 verified: `python -m app.main --company <slug>` against a real
 SmartRecruiters company before trusting it in a real run.
+
+CONFIDENCE NOTE on fetch_comeet (2026-09-20): built from Comeet/Spark Hire
+Recruit's public developer docs (developers.comeet.com) plus independent
+third-party scraper writeups (jobspipe.dev, Apify listings) — this
+sandbox has no outbound network access at all, so unlike Greenhouse/
+Ashby/Workable/Lever this has NEVER been hit live, not even against a
+robots.txt-blocked WebFetch the way SmartRecruiters was. Comeet powers a
+large share of Israeli tech careers pages, which is why it's worth
+having despite the lower confidence — verify with `python -m app.main
+--company <slug>` before trusting it. See fetch_comeet's own docstring
+for why its `slug` format is different from every other ATS here.
 """
+import json
+import re
+
 import httpx
 
 from app import filters
 
 USER_AGENT = "job-search-pipeline/0.1 (personal use)"
 TIMEOUT = 20.0
+
+_COMEET_COMPANY_DATA_RE = re.compile(r"COMPANY_DATA\s*=\s*(\{.*?\})\s*;", re.DOTALL)
 
 
 def fetch_greenhouse(company_display_name: str, slug: str) -> list[dict]:
@@ -214,12 +230,100 @@ def fetch_smartrecruiters(company_display_name: str, slug: str) -> list[dict]:
     return jobs
 
 
+def _fetch_comeet_company_data(board_path: str) -> tuple[str, str]:
+    """Comeet's Careers API needs a company UID + a public per-company
+    token — but unlike a Greenhouse/Lever slug, neither is guessable from
+    a company name. Both live in a `COMPANY_DATA` JS object embedded on
+    the company's own public careers page, so fetch that page first and
+    pull them out of it. Raises with a clear message if the page doesn't
+    look like a Comeet board — a wrong `board_path` should read as an
+    error, not silently return zero jobs."""
+    resp = httpx.get(
+        f"https://www.comeet.com/jobs/{board_path}",
+        headers={"User-Agent": USER_AGENT}, timeout=TIMEOUT,
+    )
+    resp.raise_for_status()
+    m = _COMEET_COMPANY_DATA_RE.search(resp.text)
+    if not m:
+        raise RuntimeError(
+            f"No COMPANY_DATA found on the Comeet careers page for "
+            f"'{board_path}' — check that this is a valid Comeet board "
+            f"path (the part of the URL after comeet.com/jobs/)."
+        )
+    data = json.loads(m.group(1))
+    uid = data.get("uid") or data.get("company_uid")
+    token = data.get("token")
+    if not uid or not token:
+        raise RuntimeError(f"COMPANY_DATA for '{board_path}' is missing uid/token: {data}")
+    return uid, token
+
+
+def _comeet_description(position: dict) -> str:
+    """With `details=true`, Comeet returns a `details` array of rich
+    per-position sections (job description, requirements, etc) — exact
+    key names weren't confirmed against a live response (see the
+    CONFIDENCE NOTE at the top of this file), so this reads whatever
+    shape shows up rather than assuming one, and degrades to "" (not a
+    crash) if the shape doesn't match either guess."""
+    details = position.get("details") or (position.get("custom_fields") or {}).get("details") or []
+    parts = []
+    for item in details:
+        if isinstance(item, dict):
+            text = item.get("value") or item.get("text") or item.get("description") or ""
+            if text:
+                parts.append(filters.strip_html(str(text)))
+        elif isinstance(item, str):
+            parts.append(item)
+    return "\n\n".join(p for p in parts if p)
+
+
+def fetch_comeet(company_display_name: str, slug: str) -> list[dict]:
+    """Comeet (rebranded "Spark Hire Recruit") powers a large share of
+    Israeli tech careers pages that the other 5 ATSes here don't touch.
+
+    `slug` here is NOT a bare company name — it's the full board path
+    from the company's public careers URL, e.g. "monday/41.00B" for
+    https://www.comeet.com/jobs/monday/41.00B. Find it by opening the
+    company's real careers page and copying everything after '/jobs/'.
+    This is unavoidable: Comeet's API is scoped by an opaque company UID
+    (the ".00B"-style suffix), not a predictable name-based slug the way
+    Greenhouse/Lever/Ashby are, so it can't be guessed the way those can.
+    """
+    uid, token = _fetch_comeet_company_data(slug)
+    resp = httpx.get(
+        f"https://www.comeet.co/careers-api/2.0/company/{uid}/positions",
+        params={"token": token, "details": "true"},
+        headers={"User-Agent": USER_AGENT, "Accept": "application/json"},
+        timeout=TIMEOUT,
+    )
+    resp.raise_for_status()
+    data = resp.json()
+    positions = data if isinstance(data, list) else data.get("positions", [])
+
+    jobs = []
+    for p in positions:
+        loc = p.get("location") or {}
+        loc_str = loc.get("name") or ", ".join(filter(None, [loc.get("city"), loc.get("country")]))
+        if (p.get("workplace_type") or "").lower() == "remote":
+            loc_str = f"Remote ({loc_str})" if loc_str else "Remote"
+        jobs.append({
+            "company": company_display_name,
+            "title": p.get("name", ""),
+            "location": loc_str,
+            "url": p.get("url_recruit_hosted_page") or p.get("position_url", ""),
+            "posted_at": p.get("time_updated"),
+            "description": _comeet_description(p),
+        })
+    return jobs
+
+
 FETCHERS = {
     "greenhouse": fetch_greenhouse,
     "ashby": fetch_ashby,
     "workable": fetch_workable,
     "lever": fetch_lever,
     "smartrecruiters": fetch_smartrecruiters,
+    "comeet": fetch_comeet,
 }
 
 

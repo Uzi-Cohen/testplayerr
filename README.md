@@ -34,14 +34,25 @@ run** — no "fill in your own profile/filters/companies" step needed:
   little about the QA/automation stack required.
 - **`companies.yaml`** — replaced the original Alberta/Canada SWE company
   list with companies in mobile/ad-tech/SDK, security, and fintech with
-  an Israel R&D presence. **Read the file's header comment** — these
-  slugs were compiled from general knowledge in a sandboxed dev
-  environment with no live internet access, so they're unverified;
-  confirm each with `python -m app.main --company <slug>` before trusting
-  a real run, and expect to prune/extend the list as you go. A lot of
-  Israeli startups run on Comeet, which none of the 5 supported ATSes
-  cover — this list leans on multinationals with Israel offices for that
-  reason.
+  an Israel R&D presence. **Read the file's header comment** — it has two
+  confidence tiers: the greenhouse/ashby entries are a best-effort guess
+  from general knowledge (unverified), while the comeet entries are each
+  backed by a real indexed URL found via web search (higher confidence,
+  still not a live API hit). Confirm each with `python -m app.main
+  --company <slug>` before trusting a real run, and expect to prune/
+  extend the list as you go.
+- **`app/ats_clients.py`** — added a 6th ATS fetcher, **Comeet**
+  ("Spark Hire Recruit"), which powers a large share of Israeli tech
+  careers pages that Greenhouse/Ashby/Workable/Lever/SmartRecruiters
+  don't touch. Comeet's API needs a company UID + token that aren't
+  guessable from a company name the way a Greenhouse slug is — they're
+  pulled from a `COMPANY_DATA` object embedded on the company's own
+  public careers page, so a comeet entry's `slug` in companies.yaml is
+  the full board path from the URL (e.g. `monday/41.00B`), not a bare
+  company name. See the CONFIDENCE NOTE in `app/ats_clients.py` — this
+  one is the least-verified fetcher here (built from Comeet's public
+  docs + third-party scraper writeups, no live test possible from this
+  sandbox at all) — verify before trusting it.
 - **`aggregators.yaml`** — Adzuna dropped (no Israel coverage, and the
   underlying client code hardcodes a Canada-only endpoint); Remotive kept,
   with QA-specific search keywords instead of "software engineer".
@@ -50,8 +61,8 @@ run** — no "fill in your own profile/filters/companies" step needed:
 
 1. **Fetch** (`app/main.py`) — pulls open roles from:
    - `companies.yaml` — known companies queried directly via their ATS
-     (Greenhouse, Ashby, Workable, Lever, SmartRecruiters) — precise, low
-     noise.
+     (Greenhouse, Ashby, Workable, Lever, SmartRecruiters, Comeet) —
+     precise, low noise.
    - `aggregators.yaml` — broad keyword search across many employers at
      once (Remotive) — wider reach, more noise, remote-only.
 2. **Filter** (`app/filters.py`) — drops anything that isn't a QA/testing-
@@ -186,25 +197,26 @@ None of them call live external APIs.
 
 - ATS fetchers for Greenhouse, Ashby, Workable, and Lever were each
   validated against real live responses by the upstream template's
-  author. SmartRecruiters support is built from documentation and
-  third-party corroboration only.
+  author. SmartRecruiters and Comeet support is built from documentation
+  and third-party corroboration only — Comeet in particular has never
+  been hit live at all (see its CONFIDENCE NOTE in `app/ats_clients.py`).
 - `companies.yaml`'s slugs in this fork are unverified (see the file's
-  header comment) — this dev environment had no outbound internet access
-  to check them against real APIs. Run `python -m app.main --company
-  <slug>` on each before trusting it in a real run.
+  header comment for its two confidence tiers) — this dev environment had
+  no outbound internet access to check them against real APIs. Run
+  `python -m app.main --company <slug>` on each before trusting it in a
+  real run.
 - If a particular company's fetch fails, `main.py` logs a warning and
   continues with the rest rather than crashing the whole run.
 
 ## Possible next steps
 
 - Verify/prune `companies.yaml` slugs against live APIs (see above) and
-  keep adding companies as you find them while applying.
+  keep adding companies as you find them while applying — Comeet
+  especially, since its `comeet:` section here is a starting point, not a
+  complete list of every Israeli company that runs on it.
 - Workday support (`clio.wd3.myworkdayjobs.com`-style boards) — its
   job-search API is POST-based with a different pagination shape than the
   ATSes currently supported.
-- Comeet support — a meaningful share of Israeli startups run their
-  careers page on Comeet, which none of the 5 currently-supported ATSes
-  cover.
 - A digest output (email/Sheet) beyond the current CSV/SQLite/web-board
   review flow.
 - Scheduling: once you're happy with a full local run, a daily cron entry
